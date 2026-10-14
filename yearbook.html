@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIS Yearbook Reader</title>
+    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        :root {
+            --gold: #C9A84C;
+            --navy: #0a1228
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+            font-family: 'DM Sans', sans-serif
+        }
+
+        body {
+            background: #0a1228;
+            background-image: url('capital.png');
+            background-size: cover;
+            background-attachment: fixed
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 18, 40, .9);
+            z-index: 0;
+            pointer-events: none
+        }
+
+        #app {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh
+        }
+
+        /* NAV */
+        nav {
+            background: rgba(10, 18, 40, .96);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(201, 168, 76, .18);
+            padding: 12px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            gap: 10px;
+            flex-wrap: wrap
+        }
+
+        .back-btn {
+            background: rgba(201, 168, 76, .1);
+            border: 1px solid rgba(201, 168, 76, .3);
+            color: #C9A84C;
+            border-radius: 8px;
+            padding: 7px 14px;
+            font-size: 13px;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: .18s
+        }
+
+        .back-btn:hover {
+            background: rgba(201, 168, 76, .2)
+        }
+
+        .admin-badge {
+            background: linear-gradient(135deg, #C9A84C, #a8892e);
+            color: #0a1228;
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 40px;
+            font-weight: 700;
+            letter-spacing: .5px
+        }
+
+        .chip-open {
+            background: rgba(34, 197, 94, .12);
+            border: 1px solid rgba(34, 197, 94, .3);
+            color: #22c55e;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700
+        }
+
+        .chip-closed {
+            background: rgba(239, 68, 68, .12);
+            border: 1px solid rgba(239, 68, 68, .3);
+            color: #ef4444;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700
+        }
+
+        /* MAIN */
+        #main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 28px 16px 130px;
+            gap: 18px
+        }
+
+        /* ── BOOK ── */
+        #scene {
+            perspective: 3200px;
+            perspective-origin: 50% 46%
+        }
+
+        #book {
+            position: relative;
+            width: var(--bw, 900px);
+            height: var(--bh, 560px);
+            transform-style: preserve-3d;
+            transform: rotateX(3deg);
+            filter: drop-shadow(0 50px 90px rgba(0, 0, 0, .96));
+        }
+
+        /* Leather covers */
+        .leather {
+            position: absolute;
+            top: 0;
+            width: calc(var(--bw, 900px)/2);
+            height: var(--bh, 560px);
+            z-index: 0
+        }
+
+        #cvr-l {
+            left: 0;
+            border-radius: 5px 0 0 5px;
+            background: repeating-linear-gradient(160deg, rgba(255, 255, 255, .012) 0, rgba(255, 255, 255, 0) 2px), linear-gradient(160deg, #2a120c 0%, #180905 45%, #0e0503 100%)
+        }
+
+        #cvr-r {
+            right: 0;
+            border-radius: 0 5px 5px 0;
+            background: repeating-linear-gradient(20deg, rgba(255, 255, 255, .012) 0, rgba(255, 255, 255, 0) 2px), linear-gradient(20deg, #180905 0%, #2a120c 50%, #180905 100%)
+        }
+
+        .cvr-inner {
+            position: absolute;
+            inset: 14px;
+            border: 1px solid rgba(201, 168, 76, .22);
+            pointer-events: none
+        }
+
+        .cvr-inner::after {
+            content: '';
+            position: absolute;
+            inset: 7px;
+            border: 1px solid rgba(201, 168, 76, .1)
+        }
+
+        #cvr-r .cvr-title {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none
+        }
+
+        #cvr-r .cvr-title h1 {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            color: #e6c96a;
+            font-size: clamp(1rem, 2.5vw, 2rem);
+            text-align: center;
+            margin-bottom: 8px
+        }
+
+        #cvr-r .cvr-title p {
+            color: rgba(201, 168, 76, .48);
+            letter-spacing: 3px;
+            font-size: .75rem;
+            text-transform: uppercase
+        }
+
+        #cvr-r .cvr-emblem {
+            position: absolute;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 46px;
+            height: 46px;
+            border: 1px solid rgba(201, 168, 76, .26);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(201, 168, 76, .35);
+            font-size: 1.2rem
+        }
+
+        /* Spine */
+        #spine {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+            width: 16px;
+            height: var(--bh, 560px);
+            background: linear-gradient(90deg, #080302, #2a120c 40%, #1c0b06 60%, #080302);
+            z-index: 30;
+            box-shadow: 0 0 18px rgba(0, 0, 0, .7)
+        }
+
+        /* Static pages */
+        #pg-l,
+        #pg-r {
+            position: absolute;
+            top: 0;
+            width: calc(var(--bw, 900px)/2);
+            height: var(--bh, 560px);
+            overflow: hidden;
+            z-index: 5
+        }
+
+        #pg-l {
+            left: 0;
+            border-radius: 5px 0 0 5px;
+            box-shadow: inset -5px 0 14px rgba(0, 0, 0, .22)
+        }
+
+        #pg-r {
+            right: 0;
+            border-radius: 0 5px 5px 0;
+            box-shadow: inset 5px 0 14px rgba(0, 0, 0, .22)
+        }
+
+        #pg-l::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 28px;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 0, 0, .12));
+            pointer-events: none;
+            z-index: 1
+        }
+
+        #pg-r::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 28px;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(0, 0, 0, .12), transparent);
+            pointer-events: none;
+            z-index: 1
+        }
+
+        /* Page content */
+        .pg-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: outline .1s
+        }
+
+        .pg-img.selected {
+            outline: 3px solid #C9A84C;
+            outline-offset: -3px;
+            cursor: pointer
+        }
+
+        .pg-img.clickable {
+            cursor: pointer
+        }
+
+        .pg-empty {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f4ede0, #ebe3d0);
+            color: rgba(120, 90, 55, .32);
+            gap: 10px
+        }
+
+        .pg-empty i {
+            font-size: 2.5rem
+        }
+
+        .pg-empty p {
+            font-size: .7rem;
+            letter-spacing: 2px;
+            text-transform: uppercase
+        }
+
+        .pg-num {
+            position: absolute;
+            bottom: 14px;
+            font-size: .7rem;
+            color: rgba(100, 75, 45, .44);
+            letter-spacing: .8px;
+            font-family: 'Playfair Display', serif;
+            z-index: 2
+        }
+
+        #pg-l .pg-num {
+            left: 16px
+        }
+
+        #pg-r .pg-num {
+            right: 16px
+        }
+
+        .inside-cover {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(150deg, #f4ede0, #e8dfc8);
+            position: relative
+        }
+
+        .inside-cover::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: .04;
+            background-image: radial-gradient(circle, #5a3a10 1px, transparent 1px);
+            background-size: 24px 24px
+        }
+
+        /* FLIPPER */
+        #flipper {
+            position: absolute;
+            top: 0;
+            width: calc(var(--bw, 900px)/2);
+            height: var(--bh, 560px);
+            transform-style: preserve-3d;
+            z-index: 20;
+            display: none;
+            overflow: hidden
+        }
+
+        #fp-front,
+        #fp-back {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            overflow: hidden
+        }
+
+        #fp-back {
+            transform: rotateY(180deg)
+        }
+
+        #fp-front::after,
+        #fp-back::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 2
+        }
+
+        #fp-front::after {
+            background: linear-gradient(90deg, rgba(0, 0, 0, .18) 0%, transparent 38%)
+        }
+
+        #fp-back::after {
+            background: linear-gradient(270deg, rgba(0, 0, 0, .18) 0%, transparent 38%)
+        }
+
+        @keyframes fwd {
+            from {
+                transform: rotateY(0)
+            }
+
+            to {
+                transform: rotateY(-180deg)
+            }
+        }
+
+        @keyframes bwd {
+            from {
+                transform: rotateY(-180deg)
+            }
+
+            to {
+                transform: rotateY(0)
+            }
+        }
+
+        #flipper.go-fwd {
+            right: 0;
+            left: auto;
+            transform-origin: left center;
+            animation: fwd .82s cubic-bezier(.52, .08, .3, 1) forwards
+        }
+
+        #flipper.go-bwd {
+            left: 0;
+            right: auto;
+            transform-origin: right center;
+            animation: bwd .82s cubic-bezier(.52, .08, .3, 1) forwards
+        }
+
+        #shadow-l,
+        #shadow-r {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 65px;
+            pointer-events: none;
+            z-index: 25;
+            opacity: 0;
+            transition: opacity .1s
+        }
+
+        #shadow-l {
+            left: calc(var(--bw, 900px)/2);
+            background: linear-gradient(90deg, rgba(0, 0, 0, .38), transparent)
+        }
+
+        #shadow-r {
+            right: calc(var(--bw, 900px)/2);
+            background: linear-gradient(270deg, rgba(0, 0, 0, .38), transparent)
+        }
+
+        /* CONTROLS */
+        #nav-ctrl {
+            display: flex;
+            align-items: center;
+            gap: 18px
+        }
+
+        .nav-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(10, 18, 40, .8);
+            border: 1px solid rgba(201, 168, 76, .32);
+            color: #C9A84C;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: .18s
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            border-color: #C9A84C;
+            background: rgba(201, 168, 76, .1);
+            transform: scale(1.06)
+        }
+
+        .nav-btn:disabled {
+            opacity: .25;
+            cursor: not-allowed
+        }
+
+        #pgind {
+            color: rgba(201, 168, 76, .62);
+            font-size: .88rem;
+            letter-spacing: 2px;
+            min-width: 110px;
+            text-align: center
+        }
+
+        /* THUMBNAILS */
+        #thumbs {
+            display: flex;
+            gap: 6px;
+            max-width: var(--bw, 900px);
+            overflow-x: auto;
+            padding: 4px 0;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(201, 168, 76, .38) transparent
+        }
+
+        .th {
+            width: 56px;
+            height: 38px;
+            object-fit: cover;
+            border-radius: 3px;
+            border: 1.5px solid transparent;
+            cursor: pointer;
+            opacity: .5;
+            transition: .18s;
+            flex-shrink: 0;
+            background: #1a2540
+        }
+
+        .th:hover {
+            opacity: .8
+        }
+
+        .th.act {
+            border-color: #C9A84C;
+            opacity: 1
+        }
+
+        .th.sel-th {
+            border-color: #e6c96a;
+            opacity: 1;
+            box-shadow: 0 0 0 2px rgba(201, 168, 76, .35)
+        }
+
+        #pgStatus {
+            color: rgba(201, 168, 76, .4);
+            font-size: .78rem;
+            letter-spacing: .8px;
+            text-align: center;
+            min-height: 18px
+        }
+
+        /* ── ADMIN TOOLBAR ── */
+        #adminBar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(8, 14, 30, .98);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(201, 168, 76, .2);
+            padding: 10px 20px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+            z-index: 200;
+        }
+
+        .at {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 15px;
+            border-radius: 9px;
+            border: 1px solid;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: .15s;
+            white-space: nowrap;
+            font-family: 'DM Sans', sans-serif
+        }
+
+        .at:hover {
+            transform: translateY(-1px)
+        }
+
+        .at-gold {
+            background: rgba(201, 168, 76, .14);
+            border-color: rgba(201, 168, 76, .38);
+            color: #C9A84C
+        }
+
+        .at-gold:hover {
+            background: rgba(201, 168, 76, .24)
+        }
+
+        .at-white {
+            background: rgba(255, 255, 255, .07);
+            border-color: rgba(255, 255, 255, .18);
+            color: rgba(255, 255, 255, .8)
+        }
+
+        .at-white:hover {
+            background: rgba(255, 255, 255, .14)
+        }
+
+        .at-red {
+            background: rgba(239, 68, 68, .1);
+            border-color: rgba(239, 68, 68, .32);
+            color: #ef4444
+        }
+
+        .at-red:hover {
+            background: rgba(239, 68, 68, .2)
+        }
+
+        .at-green {
+            background: rgba(34, 197, 94, .1);
+            border-color: rgba(34, 197, 94, .32);
+            color: #22c55e
+        }
+
+        .at-green:hover {
+            background: rgba(34, 197, 94, .2)
+        }
+
+        .at-sep {
+            width: 1px;
+            height: 32px;
+            background: rgba(255, 255, 255, .1);
+            flex-shrink: 0
+        }
+
+        .sel-hint {
+            color: rgba(201, 168, 76, .4);
+            font-size: 11px;
+            letter-spacing: .8px
+        }
+
+        /* MODALS */
+        .modal-bg {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .84);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 500;
+            padding: 16px
+        }
+
+        .modal-box {
+            background: linear-gradient(145deg, #0d1a35, #0a1228);
+            border: 1px solid rgba(201, 168, 76, .2);
+            border-radius: 20px;
+            padding: 34px;
+            width: 540px;
+            max-width: 100%;
+            max-height: 90vh;
+            overflow-y: auto
+        }
+
+        .inp {
+            width: 100%;
+            background: rgba(255, 255, 255, .07);
+            border: 1px solid rgba(255, 255, 255, .15);
+            color: white;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color .2s;
+            font-family: 'DM Sans', sans-serif
+        }
+
+        .inp:focus {
+            border-color: rgba(201, 168, 76, .55)
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, #C9A84C, #a8892e);
+            color: #0a1228;
+            font-weight: 700;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 22px;
+            cursor: pointer;
+            transition: .2s;
+            font-size: 14px;
+            font-family: 'DM Sans', sans-serif
+        }
+
+        .btn-gold:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(201, 168, 76, .4)
+        }
+
+        .btn-gold:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+            transform: none
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(201, 168, 76, .38);
+            color: #C9A84C;
+            border-radius: 10px;
+            padding: 8px 18px;
+            cursor: pointer;
+            transition: .2s;
+            font-size: 14px;
+            font-family: 'DM Sans', sans-serif
+        }
+
+        .btn-outline:hover {
+            background: rgba(201, 168, 76, .1)
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, .12);
+            border: 1px solid rgba(239, 68, 68, .35);
+            color: #ef4444;
+            border-radius: 10px;
+            padding: 8px 18px;
+            cursor: pointer;
+            transition: .2s;
+            font-size: 14px;
+            font-family: 'DM Sans', sans-serif
+        }
+
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, .22)
+        }
+
+        /* Drop zone */
+        .drop-zone {
+            border: 2px dashed rgba(201, 168, 76, .32);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: .2s;
+            position: relative;
+            margin-bottom: 12px
+        }
+
+        .drop-zone:hover,
+        .drop-zone.over {
+            border-color: #C9A84C;
+            background: rgba(201, 168, 76, .05)
+        }
+
+        .drop-zone input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%
+        }
+
+        /* File list */
+        .file-list {
+            max-height: 180px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 10px
+        }
+
+        .file-item {
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid rgba(255, 255, 255, .09);
+            border-radius: 8px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: rgba(255, 255, 255, .7)
+        }
+
+        .fi-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 280px
+        }
+
+        .fi-ok {
+            color: #22c55e;
+            font-size: 11px;
+            white-space: nowrap;
+            margin-left: 6px
+        }
+
+        .fi-err {
+            color: #ef4444;
+            font-size: 11px;
+            white-space: nowrap;
+            margin-left: 6px
+        }
+
+        .fi-wait {
+            color: rgba(201, 168, 76, .55);
+            font-size: 11px;
+            white-space: nowrap;
+            margin-left: 6px
+        }
+
+        .prog-bar {
+            height: 3px;
+            background: rgba(255, 255, 255, .07);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 12px
+        }
+
+        .prog-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #C9A84C, #e6c96a);
+            transition: width .3s;
+            border-radius: 4px;
+            width: 0%
+        }
+
+        /* LOADER */
+        .loader {
+            width: 44px;
+            height: 44px;
+            border: 3px solid rgba(201, 168, 76, .18);
+            border-top-color: #C9A84C;
+            border-radius: 50%;
+            animation: spin .8s linear infinite
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        /* TOAST */
+        #toast {
+            position: fixed;
+            bottom: 76px;
+            left: 50%;
+            transform: translateX(-50%) translateY(90px);
+            background: linear-gradient(135deg, #0d1a35, #0a1228);
+            border: 1px solid rgba(201, 168, 76, .4);
+            color: #C9A84C;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: transform .3s;
+            z-index: 2000;
+            white-space: nowrap;
+            pointer-events: none
+        }
+
+        #toast.show {
+            transform: translateX(-50%) translateY(0)
+        }
+
+        /* LOCKED / CLOSED SCREEN */
+        #closedScreen {
+            display: none;
+            flex: 1;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 16px;
+            text-align: center;
+            padding: 40px
+        }
+
+        #closedScreen i {
+            font-size: 4rem;
+            color: #ef4444;
+            opacity: .5
+        }
+
+        #closedScreen h2 {
+            font-family: 'Playfair Display', serif;
+            color: white;
+            font-size: 2rem
+        }
+
+        #closedScreen p {
+            color: rgba(255, 255, 255, .38);
+            font-size: 14px
+        }
+
+        /* RESPONSIVE */
+        @media(max-width:960px) {
+            :root {
+                --bw: 700px;
+                --bh: 440px
+            }
+        }
+
+        @media(max-width:740px) {
+            :root {
+                --bw: 520px;
+                --bh: 330px
+            }
+        }
+
+        @media(max-width:548px) {
+            :root {
+                --bw: 380px;
+                --bh: 246px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+
+        <!-- NAV -->
+        <nav>
+            <div style="display:flex;align-items:center;gap:14px">
+                <button class="back-btn" onclick="window.location.href='yearbook.html'">
+                    <i class="fas fa-chevron-left"></i> Yearbooks
+                </button>
+                <div>
+                    <div id="navTitle"
+                        style="color:white;font-weight:700;font-size:16px;font-family:'Playfair Display',serif">Loading…
+                    </div>
+                    <div id="navMeta" style="color:rgba(201,168,76,.55);font-size:11px;letter-spacing:.8px"></div>
+                </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+                <span id="closedChip" class="chip-closed" style="display:none"><i class="fas fa-lock"
+                        style="margin-right:4px"></i>Closed</span>
+                <span id="openChip" class="chip-open" style="display:none"><i class="fas fa-lock-open"
+                        style="margin-right:4px"></i>Open</span>
+                <span id="adminBadge" class="admin-badge" style="display:none"><i class="fas fa-crown mr-1"></i>
+                    Admin</span>
+            </div>
+        </nav>
+
+        <!-- CLOSED SCREEN (non-admin) -->
+        <div id="closedScreen"
+            style="display:none;flex:1;align-items:center;justify-content:center;flex-direction:column;gap:16px;text-align:center;padding:40px">
+            <i class="fas fa-lock" style="font-size:4rem;color:#ef4444;opacity:.5;display:block"></i>
+            <h2 style="font-family:'Playfair Display',serif;color:white;font-size:2rem">This Book is Closed</h2>
+            <p style="color:rgba(255,255,255,.38);font-size:14px">This yearbook is not currently available.<br>Contact
+                your administrator for access.</p>
+            <button class="btn-outline" onclick="window.location.href='yearbook.html'"><i class="fas fa-arrow-left"
+                    style="margin-right:6px"></i>Back to Library</button>
+        </div>
+
+        <!-- MAIN FLIPBOOK -->
+        <div id="main">
+            <div id="loadingDiv" style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:60px 0">
+                <div class="loader"></div>
+                <p style="color:rgba(201,168,76,.45);font-size:13px;letter-spacing:1px">Loading yearbook…</p>
+            </div>
+
+            <div id="bookWrap" style="display:none;flex-direction:column;align-items:center;gap:18px">
+                <div id="scene">
+                    <div id="book">
+                        <div class="leather" id="cvr-l">
+                            <div class="cvr-inner"></div>
+                        </div>
+                        <div class="leather" id="cvr-r">
+                            <div class="cvr-inner"></div>
+                            <div class="cvr-title">
+                                <h1 id="cvr-h1">Yearbook</h1>
+                                <p id="cvr-p">Capital International School</p>
+                            </div>
+                            <div class="cvr-emblem">✦</div>
+                        </div>
+                        <div id="spine"></div>
+                        <div id="pg-l"></div>
+                        <div id="pg-r"></div>
+                        <div id="shadow-l"></div>
+                        <div id="shadow-r"></div>
+                        <div id="flipper">
+                            <div id="fp-front"></div>
+                            <div id="fp-back"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="thumbs"></div>
+
+                <div id="nav-ctrl">
+                    <button class="nav-btn" id="prev-btn" onclick="prevPg()" disabled><i
+                            class="fas fa-chevron-left"></i></button>
+                    <div id="pgind">— / —</div>
+                    <button class="nav-btn" id="next-btn" onclick="nextPg()" disabled><i
+                            class="fas fa-chevron-right"></i></button>
+                </div>
+                <div id="pgStatus"></div>
+            </div>
+        </div>
+
+        <!-- ── ADMIN TOOLBAR ── -->
+        <div id="adminBar">
+            <button class="at at-gold" onclick="openAddPages()"><i class="fas fa-images"></i> Add Pages</button>
+            <div class="at-sep"></div>
+            <span class="sel-hint" id="selHint">Click a page to select it</span>
+            <button class="at at-white" id="btnMoveL" onclick="moveLeft()" disabled><i class="fas fa-arrow-left"></i>
+                Move Left</button>
+            <button class="at at-white" id="btnMoveR" onclick="moveRight()" disabled><i class="fas fa-arrow-right"></i>
+                Move Right</button>
+            <button class="at at-red" id="btnDelPg" onclick="deleteSelected()" disabled><i class="fas fa-trash"></i>
+                Delete Page</button>
+            <div class="at-sep"></div>
+            <button class="at" id="btnLock" onclick="toggleLock()"><i class="fas fa-lock"></i> Close Book</button>
+        </div>
+
+        <!-- ── ADD PAGES MODAL ── -->
+        <div class="modal-bg" id="addModal" style="display:none">
+            <div class="modal-box">
+                <h3
+                    style="font-family:'Playfair Display',serif;color:white;font-size:1.6rem;font-weight:700;margin-bottom:6px">
+                    Add Pages</h3>
+                <p style="color:rgba(255,255,255,.38);font-size:13px;margin-bottom:18px">Upload multiple photos. Each
+                    becomes a new page in order.</p>
+                <div class="drop-zone" id="dz">
+                    <input type="file" id="fileIn" accept="image/*" multiple onchange="onPick(event)">
+                    <i class="fas fa-cloud-upload-alt"
+                        style="font-size:2.2rem;color:rgba(201,168,76,.45);display:block;margin-bottom:10px"></i>
+                    <p style="color:rgba(201,168,76,.55);font-size:14px;margin-bottom:4px">Drop photos here or click to
+                        browse</p>
+                    <p style="color:rgba(255,255,255,.22);font-size:12px">Multiple files supported — PNG, JPG, WEBP</p>
+                </div>
+                <div id="fileList" class="file-list"></div>
+                <div class="prog-bar" id="progBar" style="display:none">
+                    <div class="prog-fill" id="progFill"></div>
+                </div>
+                <div style="display:flex;gap:10px;margin-top:18px">
+                    <button class="btn-gold" id="uploadBtn" onclick="doUpload()" disabled style="flex:1">Upload
+                        All</button>
+                    <button class="btn-outline" onclick="closeAdd()">Cancel</button>
+                </div>
+                <p id="upStatus" style="color:rgba(201,168,76,.55);font-size:13px;margin-top:10px;text-align:center">
+                </p>
+            </div>
+        </div>
+
+        <!-- DELETE PAGE CONFIRM -->
+        <div class="modal-bg" id="delPgModal" style="display:none">
+            <div class="modal-box" style="max-width:380px;text-align:center">
+                <div style="font-size:3rem;margin-bottom:12px">🗑️</div>
+                <h3 style="color:white;font-size:1.2rem;font-weight:700;margin-bottom:8px">Delete this page?</h3>
+                <p style="color:rgba(255,255,255,.38);font-size:13px;margin-bottom:20px">The photo will be permanently
+                    removed from this yearbook.</p>
+                <div style="display:flex;gap:10px;justify-content:center">
+                    <button class="btn-danger" id="delPgConfirm">Yes, Delete</button>
+                    <button class="btn-outline"
+                        onclick="document.getElementById('delPgModal').style.display='none'">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="toast"></div>
+    </div>
+
+    <script>
+        /* ── FIREBASE ── */
+        firebase.initializeApp({
+            apiKey: "AIzaSyA6Hr6B_rGYwdcYnyBSG1WeyrFPsgZHwBo",
+            authDomain: "cis-web-events.firebaseapp.com",
+            projectId: "cis-web-events",
+            storageBucket: "cis-web-events.firebasestorage.app",
+            messagingSenderId: "255978676984",
+            appId: "1:255978676984:web:4ce15c415c28e64e90510d"
+        });
+        const auth = firebase.auth();
+
+        /* ── SUPABASE ── */
+        const sb = supabase.createClient(
+            'https://cdyroiorxieluyldnwos.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkeXJvaW9yeGllbHV5bGRud29zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1ODMxMzAsImV4cCI6MjA5MTE1OTEzMH0.zE8Rrpaas6SDtRqSonqbfwUKVicZiDbpY0lEUOvy5f4',
+            { auth: { persistSession: true } }
+        );
+
+        /* ── STATE ── */
+        let isAdmin = false, bookData = null, pages = [], spread = 0, busy = false;
+        let selId = null, filePile = [], fileStatuses = {};
+        const bookId = new URLSearchParams(location.search).get('book');
+
+        const $ = id => document.getElementById(id);
+        function esc(s) { return String(s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])) }
+        function toast(m, ok = true) {
+            const t = $('toast'); t.textContent = m;
+            t.style.borderColor = ok ? 'rgba(201,168,76,.4)' : 'rgba(239,68,68,.4)';
+            t.style.color = ok ? '#C9A84C' : '#ef4444';
+            t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3200);
+        }
+        function setStatus(m) { $('pgStatus').textContent = m }
+
+        /* ── BOOT ── */
+        auth.onAuthStateChanged(async user => {
+            if (!user || !bookId) { window.location.href = 'yearbook.html'; return }
+            const { data: p } = await sb.from('profiles').select('role').eq('id', user.uid).maybeSingle();
+            isAdmin = p?.role === 'admin';
+            if (isAdmin) { $('adminBadge').style.display = ''; $('adminBar').style.display = 'flex' }
+            await loadBook();
+        });
+
+        /* ── LOAD BOOK ── */
+        async function loadBook() {
+            const { data: b, error } = await sb.from('yearbook_books').select('*').eq('id', bookId).single();
+            if (error || !b) { window.location.href = 'yearbook.html'; return }
+            bookData = b;
+
+            $('navTitle').textContent = b.title || 'Yearbook';
+            $('navMeta').textContent = [b.year, b.cover_title || b.subtitle].filter(Boolean).join(' · ');
+            document.title = `${b.title || 'Yearbook'} | CIS`;
+
+            if (b.is_closed) { $('closedChip').style.display = ''; $('openChip').style.display = 'none' }
+            else { $('closedChip').style.display = 'none'; $('openChip').style.display = '' }
+
+            if (isAdmin) { syncLockBtn() }
+
+            // Closed & non-admin
+            if (b.is_closed && !isAdmin) {
+                $('main').style.display = 'none';
+                $('closedScreen').style.display = 'flex';
+                return;
+            }
+
+            // Cover title
+            $('cvr-h1').textContent = b.title || 'Yearbook';
+            $('cvr-p').textContent = b.year || 'Capital International School';
+
+            await loadPages();
+        }
+
+        /* ── LOAD PAGES ── */
+        async function loadPages() {
+            setStatus('Loading pages…');
+            // Order by position first, fallback page_number
+            const { data, error } = await sb.from('yearbook_pages')
+                .select('*').eq('book_id', bookId)
+                .order('position').order('page_number');
+            if (error) { setStatus('Error loading pages'); return }
+            pages = data || [];
+            spread = 0;
+            $('loadingDiv').style.display = 'none';
+            $('bookWrap').style.display = 'flex';
+            render(); renderThumbs(); setStatus('');
+        }
+
+        /* ── SPREAD LOGIC ── */
+        function spreadPages(s) {
+            if (s === 0) return { l: null, r: null, isCover: true };
+            const i = (s - 1) * 2; return { l: pages[i] || null, r: pages[i + 1] || null, isCover: false };
+        }
+        function totalSpreads() { return 1 + Math.ceil(pages.length / 2) }
+
+        /* ── RENDER ── */
+        function show(id) { $(id).style.display = '' }
+        function hide(id) { $(id).style.display = 'none' }
+        function render() {
+            const ts = totalSpreads(), sp = spreadPages(spread);
+            $('prev-btn').disabled = spread === 0 || busy;
+            $('next-btn').disabled = spread >= ts - 1 || busy;
+            $('pgind').textContent = spread === 0 ? 'Cover' : `${spread} / ${ts - 1}`;
+            if (sp.isCover) {
+                show('cvr-l'); show('cvr-r'); hide('pg-l'); hide('pg-r');
+            } else {
+                hide('cvr-l'); hide('cvr-r'); show('pg-l'); show('pg-r');
+                fillPage($('pg-l'), sp.l, (spread - 1) * 2 + 1, 'left');
+                fillPage($('pg-r'), sp.r, (spread - 1) * 2 + 2, 'right');
+            }
+            updateThumbs();
+            if (isAdmin) syncAdminBtns();
+        }
+        function fillPage(el, pg, num) {
+            if (pg) {
+                const isSel = pg.id === selId;
+                el.innerHTML = `<img class="pg-img${isSel ? ' selected' : isAdmin ? ' clickable' : ''}" src="${esc(pg.image_url)}" data-id="${pg.id}" alt="Page ${num}"><div class="pg-num">${num}</div>`;
+                if (isAdmin) el.querySelector('img').onclick = () => selectPage(pg.id);
+            } else {
+                el.innerHTML = `<div class="pg-empty"><i class="fas fa-camera"></i><p>Add a photo</p></div><div class="pg-num">${num}</div>`;
+            }
+        }
+        function divContent(pg, num) {
+            return pg
+                ? `<img style="width:100%;height:100%;object-fit:cover;display:block" src="${esc(pg.image_url)}" alt="Page ${num}">`
+                : `<div class="pg-empty" style="background:linear-gradient(135deg,#f4ede0,#ebe3d0)"><i class="fas fa-camera" style="font-size:2.5rem;color:rgba(120,90,55,.28)"></i></div>`;
+        }
+        function coverHTML() {
+            const t = esc(bookData?.title || 'Yearbook');
+            const y = esc(bookData?.year || 'Capital International School');
+            const ci = bookData?.cover_image_url || bookData?.cover_image;
+            if (ci) {
+                return `<div style="width:100%;height:100%;background:url('${esc(ci)}') center/cover no-repeat;position:relative">
+      <div style="position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,18,40,.1),rgba(10,18,40,.6))"></div>
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+        <h1 style="font-family:'Playfair Display',serif;font-style:italic;color:#e6c96a;font-size:clamp(1rem,3vw,1.8rem);text-align:center;margin-bottom:8px">${t}</h1>
+        <p style="color:rgba(201,168,76,.6);letter-spacing:3px;font-size:.72rem;text-transform:uppercase">${y}</p>
+      </div>
+    </div>`;
+            }
+            return `<div style="width:100%;height:100%;background:linear-gradient(20deg,#180905,#2a120c);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative">
+    <div style="position:absolute;inset:14px;border:1px solid rgba(201,168,76,.22)"></div>
+    <div style="position:absolute;inset:21px;border:1px solid rgba(201,168,76,.1)"></div>
+    <h1 style="font-family:'Playfair Display',serif;font-style:italic;color:#e6c96a;font-size:clamp(1rem,3vw,2rem);text-align:center;margin-bottom:8px">${t}</h1>
+    <p style="color:rgba(201,168,76,.48);letter-spacing:3px;font-size:.75rem;text-transform:uppercase">${y}</p>
+    <div style="position:absolute;bottom:28px;left:50%;transform:translateX(-50%);width:46px;height:46px;border:1px solid rgba(201,168,76,.26);border-radius:50%;display:flex;align-items:center;justify-content:center;color:rgba(201,168,76,.35);font-size:1.2rem">✦</div>
+  </div>`;
+        }
+
+        /* ── FLIP FORWARD ── */
+        function nextPg() {
+            if (busy || spread >= totalSpreads() - 1) return;
+            const cur = spreadPages(spread), nxt = spreadPages(spread + 1);
+            const fp = $('flipper'), ff = $('fp-front'), fb = $('fp-back');
+            ff.innerHTML = cur.isCover ? coverHTML() : divContent(cur.r, (spread - 1) * 2 + 2);
+            fb.innerHTML = nxt.isCover ? `<div class="inside-cover"></div>` : divContent(nxt.l, spread * 2 + 1);
+            if (nxt.isCover) { show('cvr-l'); show('cvr-r'); hide('pg-l'); hide('pg-r') }
+            else { hide('cvr-l'); hide('cvr-r'); show('pg-l'); show('pg-r'); fillPage($('pg-l'), nxt.l, spread * 2 + 1); fillPage($('pg-r'), nxt.r, spread * 2 + 2) }
+            animate(fp, 'go-fwd', () => { spread++; busy = false; render() });
+        }
+        /* ── FLIP BACKWARD ── */
+        function prevPg() {
+            if (busy || spread <= 0) return;
+            const cur = spreadPages(spread), prv = spreadPages(spread - 1);
+            const fp = $('flipper'), ff = $('fp-front'), fb = $('fp-back');
+            ff.innerHTML = prv.isCover ? coverHTML() : divContent(prv.r, (spread - 2) * 2 + 2);
+            fb.innerHTML = cur.isCover ? `<div class="inside-cover"></div>` : divContent(cur.l, (spread - 1) * 2 + 1);
+            if (prv.isCover) { show('cvr-l'); hide('cvr-r'); hide('pg-l'); show('pg-r'); fillPage($('pg-r'), null, 0) }
+            else { hide('cvr-l'); hide('cvr-r'); show('pg-l'); show('pg-r'); fillPage($('pg-l'), prv.l, (spread - 2) * 2 + 1); fillPage($('pg-r'), prv.r, (spread - 2) * 2 + 2) }
+            animate(fp, 'go-bwd', () => { spread--; busy = false; render() });
+        }
+        function animate(fp, cls, cb) {
+            busy = true; $('prev-btn').disabled = true; $('next-btn').disabled = true;
+            fp.style.display = 'block'; fp.className = ''; fp.offsetHeight; fp.classList.add(cls);
+            const sl = cls === 'go-fwd' ? $('shadow-l') : $('shadow-r');
+            sl.style.opacity = '1';
+            fp.addEventListener('animationend', function h() { fp.removeEventListener('animationend', h); fp.style.display = 'none'; fp.className = ''; sl.style.opacity = '0'; cb() }, { once: true });
+        }
+
+        /* ── THUMBNAILS ── */
+        function renderThumbs() {
+            const s = $('thumbs'); s.innerHTML = '';
+            pages.forEach((p, i) => {
+                const img = document.createElement('img');
+                img.className = 'th'; img.src = p.image_url; img.dataset.id = p.id; img.title = `Page ${i + 1}`;
+                img.onclick = () => { if (!busy) { spread = Math.floor(i / 2) + 1; render() } };
+                s.appendChild(img);
+            });
+            updateThumbs();
+        }
+        function updateThumbs() {
+            document.querySelectorAll('.th').forEach((t, i) => {
+                t.classList.toggle('act', Math.floor(i / 2) + 1 === spread);
+                t.classList.toggle('sel-th', t.dataset.id === selId);
+            });
+        }
+
+        /* ── ADMIN: SELECT PAGE ── */
+        function selectPage(id) {
+            if (!isAdmin) return;
+            selId = selId === id ? null : id;
+            render();
+        }
+        function syncAdminBtns() {
+            const pg = selId ? pages.find(p => p.id === selId) : null;
+            const idx = pg ? pages.indexOf(pg) : -1;
+            $('btnMoveL').disabled = !pg || idx <= 0;
+            $('btnMoveR').disabled = !pg || idx < 0 || idx >= pages.length - 1;
+            $('btnDelPg').disabled = !pg;
+            $('selHint').textContent = pg ? `Page ${idx + 1} selected — click again to deselect` : 'Click a page to select it';
+        }
+
+        /* ── ADMIN: MOVE ── */
+        async function moveLeft() {
+            if (!selId) return;
+            const idx = pages.findIndex(p => p.id === selId);
+            if (idx <= 0) return;
+            await swapPages(idx, idx - 1);
+        }
+        async function moveRight() {
+            if (!selId) return;
+            const idx = pages.findIndex(p => p.id === selId);
+            if (idx < 0 || idx >= pages.length - 1) return;
+            await swapPages(idx, idx + 1);
+        }
+        async function swapPages(a, b) {
+            const pa = pages[a], pb = pages[b];
+            const posA = pa.position ?? pa.page_number ?? a;
+            const posB = pb.position ?? pb.page_number ?? b;
+            await sb.from('yearbook_pages').update({ position: posB, page_number: posB }).eq('id', pa.id);
+            await sb.from('yearbook_pages').update({ position: posA, page_number: posA }).eq('id', pb.id);
+            pages[a] = { ...pa, position: posB, page_number: posB };
+            pages[b] = { ...pb, position: posA, page_number: posA };
+            pages.sort((x, y) => (x.position ?? x.page_number ?? 0) - (y.position ?? y.page_number ?? 0));
+            const ni = pages.findIndex(p => p.id === selId);
+            spread = Math.floor(ni / 2) + 1;
+            render(); renderThumbs(); toast('Page moved');
+        }
+
+        /* ── ADMIN: DELETE PAGE ── */
+        function deleteSelected() { if (selId) $('delPgModal').style.display = 'flex' }
+        $('delPgConfirm').onclick = async () => {
+            if (!selId) return;
+            const { error } = await sb.from('yearbook_pages').delete().eq('id', selId);
+            if (error) { toast(error.message, false); return }
+            pages = pages.filter(p => p.id !== selId);
+            selId = null;
+            if (spread > totalSpreads() - 1) spread = Math.max(0, totalSpreads() - 1);
+            $('delPgModal').style.display = 'none';
+            render(); renderThumbs(); toast('Page deleted');
+        };
+
+        /* ── ADMIN: LOCK / UNLOCK ── */
+        function syncLockBtn() {
+            const locked = bookData?.is_closed;
+            $('btnLock').innerHTML = locked ? '<i class="fas fa-lock-open"></i> Open Book' : '<i class="fas fa-lock"></i> Close Book';
+            $('btnLock').className = 'at ' + (locked ? 'at-green' : 'at-red');
+        }
+        async function toggleLock() {
+            const nowClosed = !!bookData?.is_closed;
+            const { error } = await sb.from('yearbook_books').update({ is_closed: !nowClosed }).eq('id', bookId);
+            if (error) { toast(error.message, false); return }
+            bookData = { ...bookData, is_closed: !nowClosed };
+            if (bookData.is_closed) { $('closedChip').style.display = ''; $('openChip').style.display = 'none' }
+            else { $('closedChip').style.display = 'none'; $('openChip').style.display = '' }
+            syncLockBtn();
+            toast(bookData.is_closed ? 'Book closed — students cannot view it' : 'Book is now open to students');
+        }
+
+        /* ── ADMIN: ADD PAGES ── */
+        function openAddPages() {
+            filePile = []; fileStatuses = {};
+            $('fileIn').value = '';
+            $('fileList').innerHTML = '';
+            $('uploadBtn').disabled = true;
+            $('upStatus').textContent = '';
+            $('progBar').style.display = 'none';
+            $('progFill').style.width = '0%';
+            $('addModal').style.display = 'flex';
+        }
+        function closeAdd() { $('addModal').style.display = 'none' }
+        function onPick(e) { addFiles([...e.target.files]) }
+        function addFiles(files) {
+            filePile = [...filePile, ...files.filter(f => f.type.startsWith('image/'))];
+            renderFileList();
+            $('uploadBtn').disabled = filePile.length === 0;
+        }
+        function renderFileList() {
+            const fl = $('fileList'); fl.innerHTML = '';
+            filePile.forEach((f, i) => {
+                const st = fileStatuses[i];
+                const chip = st === 'ok' ? `<span class="fi-ok">✓ Uploaded</span>`
+                    : st === 'err' ? `<span class="fi-err">✗ Failed</span>`
+                        : `<span class="fi-wait">Pending</span>`;
+                const div = document.createElement('div'); div.className = 'file-item';
+                div.innerHTML = `<span class="fi-name">${esc(f.name)}</span>${chip}`;
+                fl.appendChild(div);
+            });
+        }
+        async function doUpload() {
+            if (!filePile.length) return;
+            const btn = $('uploadBtn');
+            btn.disabled = true; btn.textContent = 'Uploading…';
+            $('progBar').style.display = '';
+            $('upStatus').textContent = '';
+
+            const maxPos = pages.length ? Math.max(...pages.map(p => p.position ?? p.page_number ?? 0)) + 1 : 0;
+            let done = 0;
+
+            for (let i = 0; i < filePile.length; i++) {
+                const f = filePile[i];
+                try {
+                    const fn = `yb_${bookId}_${Date.now()}_${i}_${f.name.replace(/\s+/g, '_')}`;
+                    $('upStatus').textContent = `Uploading ${i + 1} of ${filePile.length}…`;
+                    const { error: ue } = await sb.storage.from('yearbook-images').upload(fn, f, { contentType: f.type });
+                    if (ue) throw ue;
+                    const url = sb.storage.from('yearbook-images').getPublicUrl(fn).data.publicUrl;
+                    const pos = maxPos + i;
+                    const { error: de } = await sb.from('yearbook_pages').insert({ book_id: bookId, image_url: url, position: pos, page_number: pos });
+                    if (de) throw de;
+                    fileStatuses[i] = 'ok'; done++;
+                } catch (e) { fileStatuses[i] = 'err'; console.error(e) }
+                $('progFill').style.width = `${Math.round(((i + 1) / filePile.length) * 100)}%`;
+                renderFileList();
+            }
+
+            btn.textContent = 'Upload All';
+            $('upStatus').textContent = `${done} of ${filePile.length} pages uploaded${done < filePile.length ? ' (some failed)' : ''}`;
+            if (done > 0) {
+                await loadPages();
+                spread = totalSpreads() - 1;
+                render(); renderThumbs();
+                toast(`${done} page${done > 1 ? 's' : ''} added!`);
+                if (done === filePile.length) setTimeout(closeAdd, 1200);
+                else btn.disabled = false;
+            } else { btn.disabled = false }
+        }
+
+        // Drag/drop on drop zone
+        const dz = $('dz');
+        dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over') });
+        dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+        dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('over'); addFiles([...e.dataTransfer.files]) });
+
+        // Close modals on background click
+        document.querySelectorAll('.modal-bg').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.style.display = 'none' }));
+
+        // Keyboard nav
+        document.addEventListener('keydown', e => {
+            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nextPg();
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') prevPg();
+            if (e.key === 'Escape') { selId = null; if (isAdmin) { syncAdminBtns(); render() } }
+        });
+    </script>
+</body>
+
+</html>

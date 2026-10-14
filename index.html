@@ -1,0 +1,1495 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capital International School | Complete Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js",
+                "firebase/auth": "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js"
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --gold: #C9A84C;
+            --navy: #0a1228;
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.12);
+        }
+
+        * {
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        h1,
+        h2,
+        h3,
+        .brand {
+            font-family: 'Playfair Display', serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background-image: url('capital.png');
+            background-size: cover;
+            background-attachment: fixed;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: rgba(10, 18, 40, 0.7);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        #app {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Glassmorphism & buttons (unchanged) */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 28px;
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, #C9A84C, #a8892e);
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 12px 24px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(201, 168, 76, 0.3);
+        }
+
+        .btn-gold:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(201, 168, 76, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(201, 168, 76, 0.6);
+            color: #C9A84C;
+            border-radius: 40px;
+            padding: 8px 18px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-outline:hover {
+            background: rgba(201, 168, 76, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .plus-btn {
+            background: rgba(201, 168, 76, 0.15);
+            border: 1px solid rgba(201, 168, 76, 0.5);
+            color: #C9A84C;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+
+        .plus-btn:hover {
+            background: rgba(201, 168, 76, 0.3);
+            transform: scale(1.02);
+        }
+
+        .nav-pill {
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .nav-pill:hover {
+            background: rgba(201, 168, 76, 0.2);
+            color: #C9A84C;
+        }
+
+        .nav-pill.active {
+            background: rgba(201, 168, 76, 0.3);
+            color: #C9A84C;
+            border: 1px solid rgba(201, 168, 76, 0.5);
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+            text-align: center;
+            margin-bottom: 2rem;
+            text-shadow: 0 2px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .section-title span {
+            color: #C9A84C;
+        }
+
+        .inp {
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            border-radius: 16px;
+            padding: 12px 16px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .inp:focus {
+            border-color: #C9A84C;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .modal-bg {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-box {
+            background: white;
+            border-radius: 32px;
+            max-width: 700px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 28px;
+        }
+
+        #globalToast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 9999;
+            padding: 12px 24px;
+            border-radius: 60px;
+            font-weight: 500;
+            background: #059669;
+            color: white;
+            display: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .loader {
+            border: 3px solid rgba(201, 168, 76, 0.2);
+            border-top: 3px solid #C9A84C;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ========== IMPROVED FLIPBOOK ========== */
+        .book-scene {
+            perspective: 2000px;
+            width: min(850px, 95vw);
+            height: min(580px, 68vw);
+            margin: 0 auto;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .book {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+        }
+
+        .book-spine {
+            position: absolute;
+            left: 50%;
+            width: 20px;
+            height: 100%;
+            transform: translateX(-50%);
+            background: linear-gradient(to right, #8b6914, #e0b354, #8b6914);
+            z-index: 10;
+            border-radius: 3px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .page-cover,
+        .page-inner {
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            top: 0;
+            transform-origin: right center;
+            transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+            backface-visibility: hidden;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.25);
+            transform-style: preserve-3d;
+        }
+
+        .page-cover {
+            background: #f5efe7;
+            border-radius: 8px 0 0 8px;
+        }
+
+        .page-cover.right {
+            left: 50%;
+            transform-origin: left center;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .page-inner {
+            background: white;
+            border-radius: 6px 0 0 6px;
+            box-shadow: inset -4px 0 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .page-inner.right {
+            left: 50%;
+            border-radius: 0 6px 6px 0;
+            box-shadow: inset 4px 0 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .page-content {
+            padding: 24px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .page-content img {
+            max-width: 100%;
+            max-height: 80%;
+            object-fit: contain;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .cover-title {
+            text-align: center;
+            font-family: 'Playfair Display', serif;
+            margin-top: 20px;
+            font-size: 1.8rem;
+            color: #1e293b;
+        }
+
+        .flip-arrow {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #C9A84C, #8b6914);
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .flip-arrow:hover {
+            transform: scale(1.1);
+        }
+
+        .flip-arrow:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .page-caption {
+            font-size: 11px;
+            color: #888;
+            text-align: center;
+            padding: 4px 12px;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .thumb-item {
+            width: 64px;
+            height: 80px;
+            flex-shrink: 0;
+            cursor: pointer;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .thumb-item:hover {
+            transform: scale(1.05);
+            border-color: #C9A84C;
+        }
+
+        /* Calendar, Clubs, etc. unchanged */
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+
+        .cal-day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(4px);
+            color: rgba(255, 255, 255, 0.9);
+            cursor: default;
+            transition: 0.2s;
+        }
+
+        .cal-day.has-event {
+            background: rgba(201, 168, 76, 0.5);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .cal-day.today {
+            background: #C9A84C;
+            color: #0a1228;
+            font-weight: bold;
+            border: 2px solid white;
+        }
+
+        .cal-day.other-month {
+            opacity: 0.3;
+        }
+
+        .cal-dot {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            margin-top: 4px;
+        }
+
+        .event-card {
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .event-card:hover {
+            transform: translateY(-6px);
+        }
+
+        .club-card-wrapper {
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            transition: all 0.3s;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .club-card-wrapper:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .club-poster {
+            width: 100%;
+            aspect-ratio: 3/4;
+            object-fit: cover;
+        }
+
+        .chat-container {
+            background: #f9fafb;
+            border-radius: 20px;
+            padding: 16px;
+            margin-top: 16px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .chat-message {
+            margin-bottom: 14px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-message.sent {
+            align-items: flex-end;
+        }
+
+        .chat-message.received {
+            align-items: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 80%;
+            padding: 10px 16px;
+            border-radius: 24px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .chat-message.sent .message-bubble {
+            background: #C9A84C;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-message.received .message-bubble {
+            background: #e5e7eb;
+            color: #1f2937;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-file a {
+            color: #2563eb;
+            text-decoration: underline;
+            font-size: 12px;
+        }
+
+        .newspaper-card {
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        .newspaper-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .admin-card {
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        .admin-tab-btn {
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            cursor: pointer;
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .admin-tab-btn.active {
+            background: #1e293b;
+            color: white;
+        }
+
+        .admin-tab-btn:not(.active):hover {
+            background: #e2e8f0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: white;
+            border-radius: 24px;
+            padding: 20px;
+            transition: 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-admin {
+            background: #fef9c3;
+            color: #854d0e;
+        }
+
+        .badge-teacher {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-user {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-banned {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 14px 16px;
+            background: #f8fafc;
+            font-weight: 600;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        #corner-logo {
+            position: fixed;
+            top: 16px;
+            left: 20px;
+            z-index: 100;
+            height: 48px;
+            pointer-events: none;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+        }
+
+        .admin-badge {
+            background: linear-gradient(135deg, #C9A84C, #a8892e);
+            color: #0a1228;
+            font-size: 12px;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-weight: 700;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: #C9A84C;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+
+<body>
+    <img id="corner-logo" src="Capital_logo.png" alt="" onerror="this.style.display='none'">
+    <div id="app"></div>
+    <div id="globalToast"></div>
+
+    <script type="module">
+        import { initializeApp } from "firebase/app";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "firebase/auth";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA6Hr6B_rGYwdcYnyBSG1WeyrFPsgZHwBo",
+            authDomain: "cis-web-events.firebaseapp.com",
+            projectId: "cis-web-events",
+            storageBucket: "cis-web-events.firebasestorage.app",
+            messagingSenderId: "255978676984",
+            appId: "1:255978676984:web:4ce15c415c28e64e90510d"
+        };
+        const firebaseApp = initializeApp(firebaseConfig);
+        const auth = getAuth(firebaseApp);
+
+        const SUPABASE_URL = "https://xwhkiferidfnebneildi.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3aGtpZmVyaWRmbmVibmVpbGRpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkwMzQwOTksImV4cCI6MjA5NDYxMDA5OX0.wtSn9scur8SJOXgyZwFGCBKj3nabm5YgrOsAd2CkPew";
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true } });
+
+        let currentFirebaseUser = null;
+        let currentProfile = null;
+        let currentView = "login";
+        let selectedBookId = null;
+        let currentAdminTab = "users";
+        let realtimeChannels = [];
+
+        function esc(str) { return String(str || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
+        function showToast(msg, isErr = false) { const t = document.getElementById("globalToast"); t.textContent = msg; t.style.background = isErr ? "#dc2626" : "#059669"; t.style.display = "block"; setTimeout(() => t.style.display = "none", 3500); }
+        function isAdmin() { return currentProfile?.role === "admin"; }
+        function isTeacher() { return currentProfile?.role === "teacher"; }
+        function canEditClub(club) { return isAdmin() || (isTeacher() && club.teacher_email === currentProfile?.email); }
+
+        async function getOrCreateProfile(fbUser) {
+            if (!fbUser) return null;
+            let { data: existing } = await supabase.from("profiles").select("*").eq("id", fbUser.uid).maybeSingle();
+            if (existing) return existing.banned ? null : existing;
+            const newProfile = { id: fbUser.uid, email: fbUser.email, full_name: fbUser.displayName || fbUser.email.split('@')[0], class: "", role: "user", banned: false };
+            await supabase.from("profiles").insert(newProfile);
+            return newProfile;
+        }
+
+        async function refreshCurrentProfile() { if (currentFirebaseUser) currentProfile = await getOrCreateProfile(currentFirebaseUser); }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { currentFirebaseUser = null; currentProfile = null; currentView = "login"; renderLogin(); return; }
+            currentFirebaseUser = user;
+            currentProfile = await getOrCreateProfile(user);
+            if (!currentProfile) { await signOut(auth); showToast("Account suspended", true); renderLogin(); return; }
+            if (currentView === "login") currentView = isAdmin() ? "admin" : "yearbook";
+            renderApp();
+        });
+
+        document.addEventListener("keydown", async (e) => {
+            if (e.shiftKey && e.key === "E" && currentFirebaseUser) {
+                const pwd = prompt("Master password:");
+                if (pwd === "PASSWORD") {
+                    const { error } = await supabase.from("profiles").update({ role: "admin" }).eq("id", currentFirebaseUser.uid);
+                    if (error) { showToast("Update failed: " + error.message, true); return; }
+                    await refreshCurrentProfile();
+                    showToast("✅ Admin rights granted!");
+                    if (isAdmin()) { currentView = "admin"; renderApp(); } else renderApp();
+                } else alert("Wrong password.");
+            }
+        });
+
+        function navigateTo(view) {
+            if (!currentProfile) return renderLogin();
+            if (view === "admin" && !isAdmin()) { showToast("Admin access denied", true); return; }
+            currentView = view;
+            if (view !== "yearbook") selectedBookId = null;
+            renderApp();
+        }
+
+        function renderLogin() {
+            const appDiv = document.getElementById("app");
+            appDiv.innerHTML = `
+            <div class="min-h-screen flex items-center justify-center p-4">
+                <div class="glass-card p-10 w-full max-w-md">
+                    <div class="text-center mb-8">
+                        <img src="Capital_logo.png" style="height:80px;margin:0 auto;" onerror="this.outerHTML='<div class=\'w-20 h-20 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 mx-auto flex items-center justify-center\'><i class=\'fas fa-graduation-cap text-4xl text-white\'></i></div>'">
+                        <h1 class="text-4xl font-bold text-white mt-4 brand">Capital International</h1>
+                        <p class="text-white/60 mt-2">Student & Staff Portal</p>
+                    </div>
+                    <div id="loginBox">
+                        <input id="loginEmail" type="email" placeholder="Email address" class="inp w-full mb-3">
+                        <input id="loginPassword" type="password" placeholder="Password" class="inp w-full mb-5">
+                        <button id="loginBtn" class="btn-gold w-full">Sign In</button>
+                        <p class="text-center mt-5"><button id="showRegBtn" class="text-gold-400 bg-transparent border-0 cursor-pointer">Create Account →</button></p>
+                    </div>
+                    <div id="regBox" style="display:none">
+                        <input id="regName" placeholder="Full Name" class="inp w-full mb-3">
+                        <input id="regEmail" type="email" placeholder="Email" class="inp w-full mb-3">
+                        <input id="regClass" placeholder="Class (e.g., Grade 10A)" class="inp w-full mb-3">
+                        <input id="regPass" type="password" placeholder="Password (min 6)" class="inp w-full mb-5">
+                        <button id="regBtn" class="btn-gold w-full">Create Account</button>
+                        <p class="text-center mt-4"><button id="backLoginBtn" class="text-white/50 bg-transparent border-0 cursor-pointer">← Back to Sign In</button></p>
+                    </div>
+                    <div id="loginError" class="text-red-400 text-center mt-3 hidden"></div>
+                </div>
+            </div>`;
+            document.getElementById("loginBtn").onclick = async () => { try { await signInWithEmailAndPassword(auth, document.getElementById("loginEmail").value.trim(), document.getElementById("loginPassword").value); } catch (e) { showToast(e.message, true); } };
+            document.getElementById("showRegBtn").onclick = () => { document.getElementById("loginBox").style.display = "none"; document.getElementById("regBox").style.display = "block"; };
+            document.getElementById("backLoginBtn").onclick = () => { document.getElementById("regBox").style.display = "none"; document.getElementById("loginBox").style.display = "block"; };
+            document.getElementById("regBtn").onclick = async () => {
+                const name = document.getElementById("regName").value.trim(), email = document.getElementById("regEmail").value.trim(), cls = document.getElementById("regClass").value.trim(), pw = document.getElementById("regPass").value;
+                if (!name || !email || !cls || pw.length < 6) return showToast("All fields required, password 6+ chars", true);
+                try {
+                    const cred = await createUserWithEmailAndPassword(auth, email, pw);
+                    await updateProfile(cred.user, { displayName: name });
+                    await supabase.from("profiles").upsert({ id: cred.user.uid, email, full_name: name, class: cls, role: "user", banned: false });
+                    showToast("Account created! Please sign in.");
+                    document.getElementById("regBox").style.display = "none";
+                    document.getElementById("loginBox").style.display = "block";
+                } catch (e) { showToast(e.message, true); }
+            };
+        }
+
+        async function renderApp() {
+            if (!currentProfile) return renderLogin();
+            const admin = isAdmin();
+            const appDiv = document.getElementById("app");
+            appDiv.innerHTML = `
+            <nav class="sticky top-0 z-30 backdrop-blur-xl bg-navy-900/80 border-b border-gold-400/30">
+                <div class="max-w-7xl mx-auto px-5 py-3 flex flex-wrap justify-between items-center gap-3">
+                    <div class="flex items-center gap-3" style="margin-left:56px">
+                        <span class="brand text-white font-bold text-2xl">CIS Portal</span>
+                        ${admin ? '<span class="admin-badge"><i class="fas fa-crown mr-1"></i> ADMIN</span>' : (currentProfile?.role === 'teacher' ? '<span class="admin-badge" style="background:#3b82f6; color:white"><i class="fas fa-chalkboard-teacher mr-1"></i> TEACHER</span>' : '<span class="text-xs text-white/60">Student</span>')}
+                    </div>
+                    <div class="flex gap-2 flex-wrap">
+                        <button data-view="yearbook" class="nav-pill ${currentView === 'yearbook' ? 'active' : ''}"><i class="fas fa-book-open mr-2"></i>Yearbook</button>
+                        <button data-view="newspaper" class="nav-pill ${currentView === 'newspaper' ? 'active' : ''}"><i class="fas fa-newspaper mr-2"></i>Newspaper</button>
+                        <button data-view="events" class="nav-pill ${currentView === 'events' ? 'active' : ''}"><i class="fas fa-calendar-alt mr-2"></i>Events</button>
+                        <button data-view="clubs" class="nav-pill ${currentView === 'clubs' ? 'active' : ''}"><i class="fas fa-users mr-2"></i>Clubs</button>
+                        <button data-view="forms" class="nav-pill ${currentView === 'forms' ? 'active' : ''}"><i class="fas fa-file-alt mr-2"></i>Forms</button>
+                        ${admin ? `<button data-view="admin" class="nav-pill ${currentView === 'admin' ? 'active' : ''}"><i class="fas fa-shield-alt mr-2"></i>Admin</button>` : ''}
+                        <button id="logoutBtn" class="nav-pill text-red-300"><i class="fas fa-sign-out-alt mr-2"></i>Logout</button>
+                    </div>
+                </div>
+            </nav>
+            <div class="max-w-7xl mx-auto px-5 py-10" id="content"><div class="flex justify-center py-24"><div class="loader"></div></div></div>`;
+            document.querySelectorAll("[data-view]").forEach(btn => btn.onclick = () => navigateTo(btn.dataset.view));
+            document.getElementById("logoutBtn").onclick = () => signOut(auth);
+            if (currentView === "yearbook") await renderYearbookMain();
+            else if (currentView === "newspaper") await renderNewspaper();
+            else if (currentView === "events") await renderEventsImproved();
+            else if (currentView === "clubs") await renderClubsWithChat();
+            else if (currentView === "forms") await renderForms();
+            else if (currentView === "admin" && admin) await renderAdminPanel();
+            else await renderYearbookMain();
+        }
+
+        // ================= SHARED UPLOAD =================
+        async function uploadImage(file, bucket = 'yearbook-images') {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+            const { error } = await supabase.storage.from(bucket).upload(fileName, file);
+            if (error) throw error;
+            const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(fileName);
+            return publicUrl;
+        }
+
+        // ================= YEARBOOK (with all 5 improvements) =================
+        async function renderYearbookMain() {
+            const content = document.getElementById("content");
+            content.innerHTML = `<div class="flex justify-center py-24"><div class="loader"></div></div>`;
+            const { data: books } = await supabase.from("yearbook_books").select("*").order("created_at", { ascending: false });
+            const admin = isAdmin();
+
+            if (!selectedBookId) {
+                if (!books || books.length === 0) {
+                    content.innerHTML = `<div class="text-center py-20"><i class="fas fa-book-open text-7xl text-gold-400/50 mb-5"></i><p class="text-white/70 text-xl">No yearbooks yet.</p>${admin ? `<button id="createFirstBookBtn" class="plus-btn mt-6"><i class="fas fa-plus-circle"></i> Create First Yearbook</button>` : ''}</div>`;
+                    if (admin) document.getElementById("createFirstBookBtn")?.addEventListener("click", () => openBookModal(() => renderYearbookMain()));
+                    return;
+                }
+                content.innerHTML = `<div class="flex justify-between items-center mb-8 flex-wrap gap-3"><h2 class="section-title mb-0">📖 <span>Yearbooks</span></h2>${admin ? `<button id="newBookBtn" class="plus-btn"><i class="fas fa-plus-circle"></i> New Yearbook</button>` : ''}</div><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">${books.map(book => `<div class="book-card cursor-pointer group" data-id="${book.id}"><div class="relative h-56 bg-gradient-to-br from-gold-300 to-gold-600 flex items-center justify-center overflow-hidden">${book.cover_image ? `<img src="${esc(book.cover_image)}" class="w-full h-full object-cover transition duration-300 group-hover:scale-105">` : `<i class="fas fa-book text-7xl text-white/80"></i>`}</div><div class="p-5 bg-white"><h3 class="font-bold text-2xl text-gray-800">${esc(book.title)}</h3><p class="text-gray-500 mt-1">${esc(book.cover_title || '')}</p><div class="mt-4 flex justify-between items-center"><span class="text-sm text-gold-600"><i class="far fa-calendar-alt mr-1"></i> ${new Date(book.created_at).toLocaleDateString()}</span>${admin ? `<button class="deleteBookBtn text-red-500 text-sm bg-red-50 px-3 py-1.5 rounded-full" data-id="${book.id}"><i class="fas fa-trash mr-1"></i>Delete</button>` : ''}</div></div></div>`).join('')}</div>`;
+                document.querySelectorAll(".book-card").forEach(card => { card.addEventListener("click", (e) => { if (!e.target.closest(".deleteBookBtn")) { selectedBookId = parseInt(card.dataset.id); renderYearbookMain(); } }); });
+                if (admin) {
+                    document.getElementById("newBookBtn")?.addEventListener("click", () => openBookModal(() => renderYearbookMain()));
+                    document.querySelectorAll(".deleteBookBtn").forEach(btn => btn.addEventListener("click", async (e) => { e.stopPropagation(); if (confirm("Delete this yearbook and all its pages?")) { await supabase.from("yearbook_books").delete().eq("id", btn.dataset.id); renderYearbookMain(); } }));
+                }
+                return;
+            }
+
+            const { data: pages } = await supabase.from("yearbook_pages").select("*").eq("book_id", selectedBookId).order("page_number", { ascending: true });
+            const book = books?.find(b => b.id === selectedBookId);
+            if (!book) { selectedBookId = null; renderYearbookMain(); return; }
+            if (!admin && !book.is_public) {
+                content.innerHTML = `<div class="text-center py-20"><i class="fas fa-lock text-7xl text-gold-400/50 mb-5"></i><p class="text-white/70 text-xl">This yearbook is locked. Only admins can view it.</p><button id="backToBooksBtn" class="btn-outline mt-5"><i class="fas fa-arrow-left mr-2"></i> All Yearbooks</button></div>`;
+                document.getElementById("backToBooksBtn")?.addEventListener("click", () => { selectedBookId = null; renderYearbookMain(); });
+                return;
+            }
+
+            const allPages = [
+                { type: 'cover', id: 'cover', image_url: book.cover_image, caption: book.cover_title || book.title },
+                ...(pages || []).map(p => ({ ...p, type: 'image' }))
+            ];
+            let currentPage = 0;
+            const totalPages = allPages.length;
+            const maxSpread = Math.ceil(totalPages / 2) - 1;
+            let bookScale = 1;
+
+            function renderFlipbook() {
+                const leftIdx = currentPage * 2, rightIdx = leftIdx + 1;
+                const leftPage = allPages[leftIdx], rightPage = allPages[rightIdx];
+                document.getElementById("bookInner").innerHTML = `<div class="book-spine"></div><div class="page-cover" id="leftCover">${buildPageHTML(leftPage, leftIdx)}</div><div class="page-cover right" id="rightCover">${buildPageHTML(rightPage, rightIdx)}</div>`;
+                // Animate flip after DOM update
+                setTimeout(() => {
+                    const leftCover = document.getElementById("leftCover");
+                    const rightCover = document.getElementById("rightCover");
+                    if (leftCover) leftCover.classList.add("flipping-out");
+                    if (rightCover) rightCover.classList.add("flipping-in");
+                }, 10);
+                document.getElementById("prevBtn").disabled = currentPage === 0;
+                document.getElementById("nextBtn").disabled = currentPage >= maxSpread;
+                document.getElementById("pageIndicator").innerText = `Page ${leftIdx + 1} - ${Math.min(rightIdx + 1, totalPages)} of ${totalPages}`;
+                attachZoomAndDelete();
+            }
+
+            function buildPageHTML(page, idx) {
+                if (!page) return `<div class="page-content flex items-center justify-center bg-gray-100 rounded-2xl"><p class="text-gray-400">Empty page</p></div>`;
+                if (page.type === 'cover') {
+                    return `<div class="page-content flex flex-col items-center justify-center bg-amber-50 rounded-2xl">
+                        ${page.image_url ? `<img src="${esc(page.image_url)}" class="max-h-64 object-contain rounded-xl shadow-md zoomable" data-full="${esc(page.image_url)}">` : '<div class="w-32 h-32 bg-gold-200 rounded-full flex items-center justify-center"><i class="fas fa-book-open text-5xl text-gold-600"></i></div>'}
+                        <h2 class="cover-title text-3xl font-bold text-navy mt-5 text-center px-4">${esc(page.caption || 'Yearbook')}</h2>
+                    </div>`;
+                } else {
+                    const pageNum = page.page_number ? `<span class="absolute bottom-2 right-3 text-gray-300 text-xs">${page.page_number}</span>` : '';
+                    return `<div class="page-content flex flex-col items-center justify-between bg-white relative rounded-2xl py-4">
+                        ${page.image_url
+                            ? `<img src="${esc(page.image_url)}" class="flex-1 w-full object-contain zoomable" style="max-height:85%" data-full="${esc(page.image_url)}">`
+                            : '<div class="text-gray-400 flex-1 flex items-center">No image</div>'}
+                        <p class="text-center text-xs text-gray-500 mt-2 px-3">${esc(page.caption || '')}</p>
+                        ${pageNum}
+                        ${isAdmin() ? `<button class="deleteSinglePageBtn absolute top-2 right-2 bg-red-600 text-white rounded-full w-8 h-8 text-sm hover:bg-red-700 transition z-10 shadow-md" data-id="${page.id}"><i class="fas fa-trash"></i></button>` : ''}
+                    </div>`;
+                }
+            }
+
+            function attachZoomAndDelete() {
+                document.querySelectorAll(".zoomable").forEach(img => {
+                    img.style.cursor = "zoom-in";
+                    img.onclick = (e) => {
+                        e.stopPropagation();
+                        const modal = document.createElement("div");
+                        modal.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:zoom-out;`;
+                        modal.innerHTML = `
+                            <div style="position:relative;max-width:95vw;max-height:95vh">
+                                <img src="${img.dataset.full}" style="max-width:90vw;max-height:90vh;object-fit:contain;border-radius:12px;box-shadow:0 0 60px rgba(0,0,0,0.5)">
+                                <button style="position:absolute;top:-16px;right:-16px;background:#C9A84C;color:white;border:none;border-radius:50%;width:36px;height:36px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">&times;</button>
+                            </div>`;
+                        document.body.appendChild(modal);
+                        modal.querySelector("button").onclick = () => modal.remove();
+                        modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+                        const esc = (ev) => { if (ev.key === "Escape") { modal.remove(); document.removeEventListener("keydown", esc); } };
+                        document.addEventListener("keydown", esc);
+                    };
+                });
+                document.querySelectorAll(".deleteSinglePageBtn").forEach(btn => {
+                    btn.onclick = async (e) => {
+                        e.stopPropagation();
+                        if (confirm("Delete this page?")) {
+                            await supabase.from("yearbook_pages").delete().eq("id", btn.dataset.id);
+                            renderYearbookMain();
+                        }
+                    };
+                });
+            }
+
+            content.innerHTML = `
+                <div class="flex justify-between items-center mb-6 flex-wrap gap-3">
+                    <button id="backToBooksBtn" class="btn-outline"><i class="fas fa-arrow-left mr-2"></i> All Yearbooks</button>
+                    <h2 class="text-4xl font-bold text-white brand text-center flex-1">${esc(book.title)}</h2>
+                    <div class="flex gap-3">
+                        ${isAdmin() ? `<button id="lockBookBtn" class="btn-outline"><i class="fas ${book.is_public ? 'fa-lock-open' : 'fa-lock'} mr-2"></i> ${book.is_public ? 'Make Private' : 'Make Public'}</button>` : ''}
+                        ${isAdmin() ? `<button id="editCoverBtn" class="btn-outline"><i class="fas fa-edit mr-2"></i> Edit Cover</button>` : ''}
+                        ${isAdmin() ? `<button id="addPageBtn" class="plus-btn"><i class="fas fa-plus-circle"></i> Add One Page</button>` : ''}
+                        ${isAdmin() ? `<button id="addMultiPagesBtn" class="plus-btn"><i class="fas fa-images"></i> Add Multiple Pages</button>` : ''}
+                    </div>
+                </div>
+                <div class="flex justify-center items-center gap-5 mb-5"><span class="text-white text-sm font-medium">Book Size:</span><input type="range" id="bookResizeSlider" min="0.5" max="1.5" step="0.01" value="1" class="w-56 accent-gold-500"></div>
+                <div class="book-scene" id="bookScene" style="transform: scale(${bookScale});"><div class="book" id="bookInner"></div></div>
+                <div class="flex justify-center gap-8 mt-8"><button id="prevBtn" class="flip-arrow"><i class="fas fa-chevron-left text-xl"></i></button><span id="pageIndicator" class="text-white/80 text-base font-medium"></span><button id="nextBtn" class="flip-arrow"><i class="fas fa-chevron-right text-xl"></i></button></div>
+                <div class="overflow-x-auto mt-6 pb-2"><div class="flex gap-3 justify-center flex-wrap" id="thumbStrip"></div></div>
+            `;
+
+            document.getElementById("backToBooksBtn").onclick = () => { selectedBookId = null; renderYearbookMain(); };
+            document.getElementById("prevBtn").onclick = () => { if (currentPage > 0) { currentPage--; renderFlipbook(); } };
+            document.getElementById("nextBtn").onclick = () => { if (currentPage < maxSpread) { currentPage++; renderFlipbook(); } };
+            document.getElementById("bookResizeSlider").oninput = (e) => { bookScale = parseFloat(e.target.value); document.getElementById("bookScene").style.transform = `scale(${bookScale})`; };
+            if (isAdmin()) {
+                document.getElementById("addPageBtn")?.addEventListener("click", () => openPageModal(selectedBookId, () => renderYearbookMain()));
+                document.getElementById("addMultiPagesBtn")?.addEventListener("click", () => openMultiPageModal(selectedBookId, () => renderYearbookMain()));
+                document.getElementById("editCoverBtn")?.addEventListener("click", () => openEditCoverModal(book, () => renderYearbookMain()));
+                document.getElementById("lockBookBtn")?.addEventListener("click", async () => { await supabase.from("yearbook_books").update({ is_public: !book.is_public }).eq("id", book.id); renderYearbookMain(); });
+            }
+
+            renderFlipbook();
+
+            // Build thumbnail strip after flipbook is rendered
+            setTimeout(() => {
+                const strip = document.getElementById("thumbStrip");
+                if (strip) {
+                    strip.innerHTML = allPages.map((p, i) => {
+                        const spreadIdx = Math.floor(i / 2);
+                        return `<div class="thumb-item" data-spread="${spreadIdx}" title="Go to spread ${spreadIdx + 1}">
+                            ${p.image_url
+                                ? `<img src="${esc(p.image_url)}" class="w-full h-full object-cover">`
+                                : `<div class="w-full h-full bg-amber-100 flex items-center justify-center text-xs text-gray-500">${i + 1}</div>`}
+                        </div>`;
+                    }).join('');
+                    strip.querySelectorAll(".thumb-item").forEach(thumb => {
+                        thumb.addEventListener("click", () => {
+                            currentPage = parseInt(thumb.dataset.spread);
+                            renderFlipbook();
+                        });
+                    });
+                }
+            }, 100);
+
+            // Keyboard navigation
+            const keyHandler = (e) => {
+                if (e.key === "ArrowRight" && currentPage < maxSpread) { currentPage++; renderFlipbook(); }
+                if (e.key === "ArrowLeft" && currentPage > 0) { currentPage--; renderFlipbook(); }
+            };
+            document.addEventListener("keydown", keyHandler);
+            // Clean up when leaving yearbook view
+            const backBtn = document.getElementById("backToBooksBtn");
+            const cleanup = () => {
+                document.removeEventListener("keydown", keyHandler);
+                backBtn?.removeEventListener("click", cleanup);
+            };
+            backBtn?.addEventListener("click", cleanup);
+        }
+
+        // ================= NEWSPAPER (unchanged) =================
+        async function renderNewspaper() {
+            const content = document.getElementById("content");
+            content.innerHTML = `<div class="flex justify-center py-24"><div class="loader"></div></div>`;
+            const { data: articles } = await supabase.from("newspaper_articles").select("*").order("published_date", { ascending: false });
+            const admin = isAdmin();
+            content.innerHTML = `<div class="flex justify-between items-center mb-8 flex-wrap gap-3"><h2 class="section-title mb-0">📰 <span>The Capital Chronicle</span></h2>${admin ? `<button id="createArticleBtn" class="plus-btn"><i class="fas fa-plus-circle"></i> Write Article</button>` : ''}</div><div id="articlesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>`;
+            const grid = document.getElementById("articlesGrid");
+            if (!articles?.length) {
+                grid.innerHTML = `<div class="col-span-3 text-center py-20 text-white/60"><i class="fas fa-newspaper text-7xl mb-5"></i><p class="text-xl">No articles yet. ${admin ? 'Click "Write Article" to create the first one.' : 'Check back later for news.'}</p></div>`;
+                if (admin) document.getElementById("createArticleBtn")?.addEventListener("click", () => openArticleModal(() => renderNewspaper()));
+                return;
+            }
+            grid.innerHTML = articles.map(art => `<div class="newspaper-card group">${art.image_url ? `<img src="${esc(art.image_url)}" class="w-full h-56 object-cover transition duration-300 group-hover:scale-105" onerror="this.src='https://placehold.co/600x400?text=No+Image'">` : `<div class="w-full h-56 bg-gray-200 flex items-center justify-center"><i class="fas fa-image text-5xl text-gray-400"></i></div>`}<div class="p-6"><div class="text-xs text-gold-600 mb-2"><i class="far fa-calendar-alt mr-1"></i> ${new Date(art.published_date).toLocaleDateString()}</div><h3 class="font-bold text-2xl mb-3">${esc(art.title)}</h3><p class="text-gray-600 text-sm line-clamp-4">${esc(art.content)}</p><div class="mt-4 flex justify-between items-center"><span class="text-xs text-gray-400">By ${esc(art.author || 'Editor')}</span>${admin ? `<div><button data-id="${art.id}" class="editArticleBtn text-blue-600 mr-3"><i class="fas fa-edit"></i></button><button data-id="${art.id}" class="deleteArticleBtn text-red-600"><i class="fas fa-trash"></i></button></div>` : ''}</div></div></div>`).join('');
+            if (admin) {
+                document.getElementById("createArticleBtn")?.addEventListener("click", () => openArticleModal(() => renderNewspaper()));
+                document.querySelectorAll(".editArticleBtn").forEach(btn => btn.onclick = async () => { const art = articles.find(a => a.id == btn.dataset.id); openArticleModal(() => renderNewspaper(), art); });
+                document.querySelectorAll(".deleteArticleBtn").forEach(btn => btn.onclick = async () => { if (confirm("Delete this article?")) { await supabase.from("newspaper_articles").delete().eq("id", btn.dataset.id); renderNewspaper(); } });
+            }
+        }
+
+        function openArticleModal(onSuccess, article = null) {
+            const m = document.createElement("div"); m.className = "modal-bg";
+            m.innerHTML = `<div class="modal-box rounded-3xl"><h3 class="font-bold text-2xl mb-4">${article ? 'Edit Article' : 'Create New Article'}</h3><input id="artTitle" placeholder="Title" class="w-full border rounded-xl p-3 mb-3" value="${article ? esc(article.title) : ''}"><textarea id="artContent" placeholder="Content (full article)" rows="6" class="w-full border rounded-xl p-3 mb-3">${article ? esc(article.content) : ''}</textarea><input id="artImage" placeholder="Image URL (optional)" class="w-full border rounded-xl p-3 mb-2" value="${article ? esc(article.image_url || '') : ''}"><p class="text-sm text-gray-500 mb-1">Or upload image:</p><input type="file" id="artImageFile" accept="image/*" class="w-full border rounded-xl p-2 mb-3"><input id="artAuthor" placeholder="Author name" class="w-full border rounded-xl p-3 mb-3" value="${article ? esc(article.author || '') : ''}"><input id="artDate" type="date" class="w-full border rounded-xl p-3 mb-4" value="${article ? article.published_date : new Date().toISOString().split('T')[0]}"><button id="saveArticleBtn" class="btn-gold w-full">${article ? 'Update' : 'Publish'}</button><button id="cancelArticleBtn" class="mt-3 text-gray-500 w-full">Cancel</button><div id="artErr" class="text-red-500 mt-2"></div></div>`;
+            document.body.appendChild(m);
+            document.getElementById("artImageFile").addEventListener("change", async (e) => { if (e.target.files[0]) { try { const url = await uploadImage(e.target.files[0], 'newspaper-images'); document.getElementById("artImage").value = url; showToast("Image uploaded"); } catch (err) { showToast("Upload failed", true); } } });
+            document.getElementById("saveArticleBtn").onclick = async () => {
+                const title = document.getElementById("artTitle").value.trim();
+                if (!title) { document.getElementById("artErr").innerText = "Title required"; return; }
+                const content = document.getElementById("artContent").value.trim();
+                if (!content) { document.getElementById("artErr").innerText = "Content required"; return; }
+                const imageUrl = document.getElementById("artImage").value.trim();
+                const author = document.getElementById("artAuthor").value.trim() || currentProfile.full_name;
+                const date = document.getElementById("artDate").value;
+                if (article) await supabase.from("newspaper_articles").update({ title, content, image_url: imageUrl || null, author, published_date: date }).eq("id", article.id);
+                else await supabase.from("newspaper_articles").insert({ title, content, image_url: imageUrl || null, author, published_date: date });
+                m.remove(); if (onSuccess) onSuccess(); showToast(article ? "Article updated!" : "Article published!");
+            };
+            document.getElementById("cancelArticleBtn").onclick = () => m.remove();
+        }
+
+        // ================= EVENTS (unchanged) =================
+        async function renderEventsImproved() {
+            const content = document.getElementById("content");
+            content.innerHTML = `<div class="flex justify-center py-24"><div class="loader"></div></div>`;
+            let { data: events } = await supabase.from("events").select("*").order("date");
+            const admin = isAdmin();
+            let calYear = new Date().getFullYear(), calMonth = new Date().getMonth();
+            function buildCalendar() {
+                const firstDay = new Date(calYear, calMonth, 1).getDay();
+                const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+                const today = new Date();
+                const eventMap = {};
+                (events || []).forEach(ev => { if (ev.date) { let d = new Date(ev.date); if (d.getFullYear() === calYear && d.getMonth() === calMonth) eventMap[d.getDate()] = ev; } });
+                let cells = "";
+                for (let i = 0; i < firstDay; i++) cells += `<div class="cal-day other-month"></div>`;
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const has = !!eventMap[d];
+                    const isToday = (d === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear());
+                    cells += `<div class="cal-day ${isToday ? 'today' : ''} ${has ? 'has-event' : ''}" data-day="${d}"><span class="text-lg font-bold">${d}</span>${has ? '<div class="cal-dot"></div>' : ''}</div>`;
+                }
+                return `<div class="glass-card p-6 mb-10"><div class="flex justify-between items-center mb-6"><button id="calPrev" class="text-gold-400 text-3xl"><i class="fas fa-chevron-left"></i></button><h3 class="text-white font-bold text-3xl">${new Date(calYear, calMonth).toLocaleString('default', { month: 'long' })} ${calYear}</h3><button id="calNext" class="text-gold-400 text-3xl"><i class="fas fa-chevron-right"></i></button></div><div class="cal-grid">${["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => `<div class="text-center text-white/70 text-sm py-2 font-semibold">${d}</div>`).join('')}${cells}</div></div>`;
+            }
+            function renderList(filterDay = null) {
+                let filtered = events || [];
+                if (filterDay) filtered = filtered.filter(ev => ev.date && new Date(ev.date).getDate() === filterDay);
+                if (!filtered.length) return `<div class="text-center py-16 text-white/60"><i class="fas fa-calendar-times text-6xl mb-4"></i><p class="text-xl">No events on this day.</p></div>`;
+                return `<div class="grid grid-cols-1 md:grid-cols-2 gap-8">${filtered.map(ev => `<div class="event-card"><div class="p-6"><div class="flex justify-between items-start gap-4"><div><h3 class="font-bold text-2xl text-gray-800">${esc(ev.title)}</h3><p class="text-gold-600 mt-1"><i class="far fa-calendar-alt mr-2"></i>${ev.date ? new Date(ev.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'TBA'}</p>${ev.location ? `<p class="text-gray-500 mt-1"><i class="fas fa-map-marker-alt mr-2"></i>${esc(ev.location)}</p>` : ''}</div>${admin ? `<button data-id="${ev.id}" class="deleteEventBtn bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm"><i class="fas fa-trash mr-1"></i>Delete</button>` : ''}</div><p class="text-gray-600 mt-4">${esc(ev.description || '')}</p>${ev.google_form_url ? `<a href="${esc(ev.google_form_url)}" target="_blank" class="inline-block mt-5 bg-green-100 text-green-800 px-5 py-2 rounded-full text-sm font-semibold"><i class="fab fa-google mr-2"></i>Register via Google Form</a>` : ''}</div></div>`).join('')}</div>`;
+            }
+            function refresh(dayFilter = null) {
+                content.innerHTML = `<h2 class="section-title">🎉 <span>Events</span> & Calendar</h2><div class="flex justify-end mb-6">${admin ? `<button id="addEventBtn" class="plus-btn"><i class="fas fa-plus-circle"></i> Add Event</button>` : ''}</div>${buildCalendar()}<div id="eventList">${renderList(dayFilter)}</div>`;
+                document.getElementById("calPrev")?.addEventListener("click", () => { calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } refresh(); });
+                document.getElementById("calNext")?.addEventListener("click", () => { calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } refresh(); });
+                document.querySelectorAll(".cal-day.has-event").forEach(cell => cell.addEventListener("click", (e) => { const day = parseInt(e.currentTarget.dataset.day); refresh(day); }));
+                if (admin) {
+                    document.getElementById("addEventBtn")?.addEventListener("click", () => openEventModal(() => renderEventsImproved()));
+                    document.querySelectorAll(".deleteEventBtn").forEach(btn => btn.addEventListener("click", async () => { if (confirm("Delete event?")) { await supabase.from("events").delete().eq("id", btn.dataset.id); renderEventsImproved(); } }));
+                }
+            }
+            refresh();
+        }
+
+        function openEventModal(onSuccess) {
+            const m = document.createElement("div"); m.className = "modal-bg";
+            m.innerHTML = `<div class="modal-box rounded-3xl"><h3 class="font-bold text-2xl mb-4">Add Event</h3><input id="evTitle" placeholder="Title" class="w-full border rounded-xl p-3 mb-3"><input id="evDate" type="date" class="w-full border rounded-xl p-3 mb-3"><input id="evLocation" placeholder="Location" class="w-full border rounded-xl p-3 mb-3"><textarea id="evDesc" placeholder="Description" rows="4" class="w-full border rounded-xl p-3 mb-3"></textarea><input id="evUrl" placeholder="Google Form URL" class="w-full border rounded-xl p-3 mb-4"><button id="saveEvent" class="btn-gold w-full">Save</button><button id="cancelEvent" class="mt-3 text-gray-500 w-full">Cancel</button><div id="evErr" class="text-red-500 mt-2"></div></div>`;
+            document.body.appendChild(m);
+            document.getElementById("saveEvent").onclick = async () => {
+                const title = document.getElementById("evTitle").value.trim();
+                if (!title) { document.getElementById("evErr").innerText = "Title required"; return; }
+                await supabase.from("events").insert({ title, date: document.getElementById("evDate").value, location: document.getElementById("evLocation").value.trim(), description: document.getElementById("evDesc").value.trim(), google_form_url: document.getElementById("evUrl").value.trim() });
+                m.remove(); if (onSuccess) onSuccess(); showToast("Event added!");
+            };
+            document.getElementById("cancelEvent").onclick = () => m.remove();
+        }
+
+        // ================= CLUBS WITH CHAT (unchanged) =================
+        async function renderClubsWithChat() {
+            const content = document.getElementById("content");
+            content.innerHTML = `<div class="flex justify-center py-24"><div class="loader"></div></div>`;
+            const { data: clubs } = await supabase.from("clubs").select("*");
+            const { data: memberships } = await supabase.from("club_memberships").select("club_id").eq("user_id", currentFirebaseUser.uid);
+            const { data: allMem } = await supabase.from("club_memberships").select("club_id");
+            const currentUserClubId = memberships && memberships[0] ? memberships[0].club_id : null;
+            const counts = {}; allMem?.forEach(m => counts[m.club_id] = (counts[m.club_id] || 0) + 1);
+            const admin = isAdmin();
+
+            async function showMemberList(clubId, clubName) {
+                const { data: members } = await supabase.from("club_memberships").select("user_id, created_at").eq("club_id", clubId);
+                if (!members?.length) { alert("No members in this club."); return; }
+                const userIds = members.map(m => m.user_id);
+                const { data: profiles } = await supabase.from("profiles").select("id, full_name, email").in("id", userIds);
+                const profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p]));
+                const memberRows = members.map(m => `<tr class="border-b"><td class="py-3 px-4">${esc(profileMap[m.user_id]?.full_name || "Unknown")}</td><td class="py-3 px-4">${esc(profileMap[m.user_id]?.email || "")}</td><td class="py-3 px-4">${new Date(m.created_at).toLocaleDateString()}</td></tr>`).join('');
+                const modal = document.createElement("div"); modal.className = "modal-bg";
+                modal.innerHTML = `<div class="modal-box rounded-3xl"><h3 class="font-bold text-2xl mb-4">${esc(clubName)} - Members (${members.length})</h3><div class="table-container"><table class="w-full"><thead><tr class="bg-gray-100"><th class="text-left p-3">Name</th><th>Email</th><th>Joined</th></tr></thead><tbody>${memberRows}</tbody></table></div><button class="mt-5 text-gray-500 closeModalBtn">Close</button></div>`;
+                document.body.appendChild(modal);
+                modal.querySelector(".closeModalBtn").onclick = () => modal.remove();
+                modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+            }
+
+            async function handleJoinLeave(clubId, isCurrentlyMember) {
+                if (isCurrentlyMember) {
+                    await supabase.from("club_memberships").delete().match({ user_id: currentFirebaseUser.uid, club_id: clubId });
+                    showToast("Left the club.");
+                } else {
+                    if (currentUserClubId) await supabase.from("club_memberships").delete().match({ user_id: currentFirebaseUser.uid, club_id: currentUserClubId });
+                    await supabase.from("club_memberships").insert({ user_id: currentFirebaseUser.uid, club_id: clubId });
+                    showToast("Joined! 🎉");
+                }
+                renderClubsWithChat();
+            }
+
+            async function loadMessages(clubId) {
+                const { data: msgs } = await supabase.from("club_messages").select("*").eq("club_id", clubId).order("created_at", { ascending: true });
+                const msgsDiv = document.getElementById(`chat-messages-${clubId}`);
+                if (msgsDiv && msgs) {
+                    msgsDiv.innerHTML = msgs.map(m => `
+                        <div class="chat-message ${m.user_id === currentFirebaseUser.uid ? 'sent' : 'received'}">
+                            <div class="message-bubble"><strong>${esc(m.user_name)}:</strong> ${m.message ? esc(m.message) : ''}</div>
+                            ${m.file_url ? `<div class="message-file mt-1"><a href="${esc(m.file_url)}" target="_blank" class="text-blue-500 text-xs">📎 Download file</a></div>` : ''}
+                            <div class="text-xs text-gray-400 mt-1">${new Date(m.created_at).toLocaleTimeString()}</div>
+                        </div>
+                    `).join('');
+                    msgsDiv.scrollTop = msgsDiv.scrollHeight;
+                }
+            }
+
+            function setupRealtime(clubId) {
+                const existing = realtimeChannels.find(ch => ch.topic === `club-${clubId}`);
+                if (existing) supabase.removeChannel(existing);
+                const channel = supabase.channel(`club-${clubId}`);
+                channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'club_messages', filter: `club_id=eq.${clubId}` }, () => loadMessages(clubId)).subscribe();
+                realtimeChannels.push(channel);
+            }
+
+            function buildChatUI(clubId) {
+                const container = document.createElement("div");
+                container.className = "chat-container hidden mt-4";
+                container.id = `chat-${clubId}`;
+                container.innerHTML = `
+                    <div id="chat-messages-${clubId}" class="messages-area h-64 overflow-y-auto mb-3 p-3 bg-white rounded-xl"></div>
+                    <div class="flex gap-2 items-center">
+                        <input type="text" id="msg-input-${clubId}" placeholder="Type a message..." class="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold-400">
+                        <button id="send-text-${clubId}" class="bg-gold-600 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-gold-700 transition"><i class="fas fa-paper-plane"></i></button>
+                        <label for="file-input-${clubId}" class="bg-gray-200 rounded-full w-10 h-10 flex items-center justify-center cursor-pointer hover:bg-gray-300 transition"><i class="fas fa-paperclip"></i></label>
+                        <input type="file" id="file-input-${clubId}" class="hidden" accept="image/*,audio/*,video/*,application/pdf">
+                        <button id="voice-${clubId}" class="bg-gray-200 rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-300 transition"><i class="fas fa-microphone"></i></button>
+                    </div>
+                `;
+                return container;
+            }
+
+            if (!clubs?.length) {
+                content.innerHTML = `<h2 class="section-title">🤝 Student <span>Clubs</span></h2><div class="flex justify-end mb-6">${admin || isTeacher() ? `<button id="emptyAddClub" class="plus-btn"><i class="fas fa-plus-circle"></i> Add First Club</button>` : ''}</div><div class="text-center py-20 text-white/60"><i class="fas fa-users-slash text-7xl mb-5"></i><p class="text-xl">No clubs yet</p></div>`;
+                if (admin || isTeacher()) document.getElementById("emptyAddClub")?.addEventListener("click", () => openClubModal(() => renderClubsWithChat()));
+                return;
+            }
+
+            content.innerHTML = `<h2 class="section-title">🤝 Student <span>Clubs</span></h2><div class="flex justify-end mb-6">${admin || isTeacher() ? `<button id="addClubBtn" class="plus-btn"><i class="fas fa-plus-circle"></i> Add Club</button>` : ''}</div><div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">${clubs.map(club => {
+                const isMember = (currentUserClubId === club.id);
+                const canEdit = canEditClub(club);
+                return `<div class="club-card-wrapper relative"><div style="position:relative">${club.cover_image ? `<img src="${esc(club.cover_image)}" class="club-poster">` : `<div class="club-poster flex items-center justify-center bg-gradient-to-br from-navy-700 to-navy-900"><i class="fas fa-users text-7xl text-gold-400/50"></i></div>`}<div class="absolute top-3 left-3 bg-black/60 text-white text-xs px-3 py-1 rounded-full">${counts[club.id] || 0} members</div>${canEdit ? `<button data-id="${club.id}" class="editClubBtn absolute top-3 right-12 bg-blue-600 text-white w-8 h-8 rounded-full text-sm hover:bg-blue-700"><i class="fas fa-edit"></i></button>` : ''}${admin ? `<button data-id="${club.id}" class="deleteClubBtn absolute top-3 right-3 bg-red-700/80 text-white w-8 h-8 rounded-full text-sm hover:bg-red-800"><i class="fas fa-times"></i></button>` : ''}</div><div class="p-5"><div class="flex justify-between items-start flex-wrap gap-3"><h3 class="font-bold text-2xl text-gray-800">${esc(club.name)}</h3><div class="flex gap-2"><button data-id="${club.id}" data-member="${isMember}" class="joinClubBtn px-4 py-2 rounded-full text-sm font-semibold ${isMember ? 'bg-red-100 text-red-600 hover:bg-red-200' : 'bg-gold-100 text-gold-700 hover:bg-gold-200'}">${isMember ? 'Leave' : 'Join'}</button><button data-id="${club.id}" data-name="${esc(club.name)}" class="viewMembersBtn px-4 py-2 rounded-full text-sm font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300"><i class="fas fa-users mr-1"></i>Members</button><button data-id="${club.id}" class="toggleChatBtn px-4 py-2 rounded-full text-sm font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300"><i class="fas fa-comment"></i> Chat</button></div></div><p class="text-gray-500 text-sm mt-3">${esc(club.description || '')}</p>${club.teacher_name ? `<div class="bg-gray-50 p-3 rounded-xl mt-3"><p class="text-xs text-gray-500 font-semibold">Club Officer</p><p class="text-sm font-medium">${esc(club.teacher_name)}</p>${club.teacher_email ? `<p class="text-xs text-gray-400">${esc(club.teacher_email)}</p>` : ''}</div>` : ''}<div id="chat-container-${club.id}"></div></div></div>`;
+            }).join('')}</div>`;
+
+            for (const club of clubs) {
+                const container = document.getElementById(`chat-container-${club.id}`);
+                if (container) {
+                    container.appendChild(buildChatUI(club.id));
+                    await loadMessages(club.id);
+                    setupRealtime(club.id);
+                    document.getElementById(`send-text-${club.id}`)?.addEventListener("click", async () => {
+                        const input = document.getElementById(`msg-input-${club.id}`);
+                        const msg = input.value.trim();
+                        if (!msg) return;
+                        await supabase.from("club_messages").insert({ club_id: club.id, user_id: currentFirebaseUser.uid, user_name: currentProfile.full_name, message: msg });
+                        input.value = "";
+                    });
+                    document.getElementById(`file-input-${club.id}`)?.addEventListener("change", async (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            try {
+                                const url = await uploadImage(file, 'club-files');
+                                await supabase.from("club_messages").insert({ club_id: club.id, user_id: currentFirebaseUser.uid, user_name: currentProfile.full_name, file_url: url, file_type: file.type });
+                                showToast("File uploaded");
+                            } catch (err) { showToast("Upload failed: " + err.message, true); }
+                        }
+                    });
+                    let mediaRecorder, audioChunks = [];
+                    const voiceBtn = document.getElementById(`voice-${club.id}`);
+                    if (voiceBtn) {
+                        voiceBtn.onclick = async () => {
+                            if (mediaRecorder && mediaRecorder.state === "recording") {
+                                mediaRecorder.stop();
+                                voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+                            } else {
+                                try {
+                                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                                    mediaRecorder = new MediaRecorder(stream);
+                                    audioChunks = [];
+                                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                                    mediaRecorder.onstop = async () => {
+                                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                                        const file = new File([audioBlob], `audio_${Date.now()}.webm`, { type: 'audio/webm' });
+                                        const url = await uploadImage(file, 'club-files');
+                                        await supabase.from("club_messages").insert({ club_id: club.id, user_id: currentFirebaseUser.uid, user_name: currentProfile.full_name, file_url: url, file_type: 'audio' });
+                                        showToast("Voice message sent");
+                                        stream.getTracks().forEach(track => track.stop());
+                                    };
+                                    mediaRecorder.start();
+                                    voiceBtn.innerHTML = '<i class="fas fa-stop"></i>';
+                                } catch (err) { showToast("Microphone access denied", true); }
+                            }
+                        };
+                    }
+                }
+                document.getElementById(`toggleChatBtn-${club.id}`)?.addEventListener("click", () => {
+                    const chatDiv = document.getElementById(`chat-${club.id}`);
+                    if (chatDiv) chatDiv.classList.toggle("hidden");
+                });
+            }
+
+            document.querySelectorAll(".joinClubBtn").forEach(btn => { btn.onclick = async () => { const clubId = parseInt(btn.dataset.id), isMember = btn.dataset.member === "true"; await handleJoinLeave(clubId, isMember); }; });
+            document.querySelectorAll(".viewMembersBtn").forEach(btn => { btn.onclick = () => showMemberList(parseInt(btn.dataset.id), btn.dataset.name); });
+            if (admin || isTeacher()) {
+                document.getElementById("addClubBtn")?.addEventListener("click", () => openClubModal(() => renderClubsWithChat()));
+                document.querySelectorAll(".deleteClubBtn").forEach(btn => btn.onclick = async () => { if (confirm("Delete club?")) { await supabase.from("clubs").delete().eq("id", btn.dataset.id); renderClubsWithChat(); } });
+                document.querySelectorAll(".editClubBtn").forEach(btn => btn.onclick = async () => { const club = clubs.find(c => c.id == btn.dataset.id); openEditClubModal(club, () => renderClubsWithChat()); });
+            }
+        }
+
+        // ================= FORMS (unchanged) =================
+        async function renderForms() {
+            const content = document.getElementById("content");
+            content.innerHTML = `<div class="flex justify-center py-24"><div class="loader"></div></div>`;
+            const { data: forms } = await supabase.from("custom_forms").select("*").eq("is_active", true);
+            const admin = isAdmin();
+            if (!forms?.length) {
+                content.innerHTML = `<h2 class="section-title">📋 School <span>Forms</span></h2><div class="flex justify-end mb-6">${admin ? `<button id="emptyFormBtn" class="plus-btn"><i class="fas fa-plus-circle"></i> Create First Form</button>` : ''}</div><div class="text-center py-20 text-white/60"><i class="fas fa-file-alt text-7xl mb-5"></i><p class="text-xl">No active forms</p></div>`;
+                if (admin) document.getElementById("emptyFormBtn")?.addEventListener("click", () => openFormBuilder(() => renderForms()));
+                return;
+            }
+            content.innerHTML = `<h2 class="section-title">📋 School <span>Forms</span></h2><div class="flex justify-end mb-6">${admin ? `<button id="createFormBtn" class="plus-btn"><i class="fas fa-plus-circle"></i> Create Form</button>` : ''}</div><div id="formsContainer" class="space-y-8"></div>`;
+            const container = document.getElementById("formsContainer");
+            for (const form of forms) {
+                const div = document.createElement("div"); div.className = "glass-card p-6";
+                div.innerHTML = `<div class="flex justify-between items-start flex-wrap gap-3"><div><h3 class="font-bold text-2xl text-white">${esc(form.title)}</h3><p class="text-white/70 mt-1">${esc(form.description || '')}</p></div>${admin ? `<div class="flex gap-2"><button data-id="${form.id}" class="viewResponsesBtn bg-indigo-500/20 text-indigo-300 px-4 py-2 rounded-full text-sm"><i class="fas fa-chart-bar mr-1"></i>Responses</button><button data-id="${form.id}" class="deleteFormBtn bg-red-500/20 text-red-300 px-4 py-2 rounded-full text-sm"><i class="fas fa-trash mr-1"></i>Delete</button></div>` : ''}</div><div id="formFields_${form.id}" class="mt-5 bg-white/10 p-4 rounded-2xl"></div><button data-id="${form.id}" class="submitFormBtn btn-gold w-auto mt-5 px-6 py-2">Submit</button><div id="msg_${form.id}" class="mt-3 text-sm hidden"></div>`;
+                const fieldsDiv = div.querySelector(`#formFields_${form.id}`);
+                form.questions.forEach((q, idx) => {
+                    if (q.type === 'text') fieldsDiv.innerHTML += `<div class="mb-4"><label class="block font-medium text-white">${idx + 1}. ${esc(q.label)}${q.required ? ' <span class="text-red-300">*</span>' : ''}</label><input type="text" data-qidx="${idx}" data-req="${q.required}" class="form-field w-full bg-white/20 border border-white/30 rounded-xl p-3 text-white placeholder-white/50"></div>`;
+                    else if (q.type === 'long_text') fieldsDiv.innerHTML += `<div class="mb-4"><label class="block font-medium text-white">${idx + 1}. ${esc(q.label)}${q.required ? ' *' : ''}</label><textarea data-qidx="${idx}" data-req="${q.required}" rows="3" class="form-field w-full bg-white/20 border border-white/30 rounded-xl p-3 text-white placeholder-white/50"></textarea></div>`;
+                    else if (q.type === 'multiple_choice') {
+                        let html = `<div class="mb-4"><label class="block font-medium text-white">${idx + 1}. ${esc(q.label)}${q.required ? ' *' : ''}</label>`;
+                        q.options.forEach(opt => html += `<label class="flex items-center gap-3 mt-2 text-white"><input type="radio" name="q_${idx}" value="${esc(opt)}" data-qidx="${idx}" data-req="${q.required}" class="form-radio accent-gold-500"> ${esc(opt)}</label>`);
+                        html += `</div>`;
+                        fieldsDiv.innerHTML += html;
+                    } else if (q.type === 'checkbox') {
+                        let html = `<div class="mb-4"><label class="block font-medium text-white">${idx + 1}. ${esc(q.label)}${q.required ? ' *' : ''}</label>`;
+                        q.options.forEach(opt => html += `<label class="flex items-center gap-3 mt-2 text-white"><input type="checkbox" value="${esc(opt)}" data-qidx="${idx}" data-req="${q.required}" class="form-checkbox accent-gold-500"> ${esc(opt)}</label>`);
+                        html += `</div>`;
+                        fieldsDiv.innerHTML += html;
+                    }
+                });
+                container.appendChild(div);
+            }
+            document.querySelectorAll(".submitFormBtn").forEach(btn => btn.onclick = async () => {
+                const formId = parseInt(btn.dataset.id);
+                const form = forms.find(f => f.id == formId);
+                const answers = []; let valid = true;
+                for (let i = 0; i < form.questions.length; i++) {
+                    const q = form.questions[i];
+                    if (q.type === 'multiple_choice') { const sel = document.querySelector(`input[name="q_${i}"]:checked`); answers[i] = sel ? sel.value : ''; if (q.required && !answers[i]) valid = false; }
+                    else if (q.type === 'checkbox') { const checked = [...document.querySelectorAll(`input[data-qidx="${i}"].form-checkbox:checked`)].map(el => el.value); answers[i] = checked; if (q.required && checked.length === 0) valid = false; }
+                    else { const inp = document.querySelector(`#formFields_${formId} .form-field[data-qidx="${i}"]`); answers[i] = inp ? inp.value.trim() : ''; if (q.required && !answers[i]) valid = false; }
+                }
+                if (!valid) { document.getElementById(`msg_${formId}`).innerHTML = "Please fill all required fields."; document.getElementById(`msg_${formId}`).classList.remove("hidden"); return; }
+                await supabase.from("form_responses").insert({ form_id: formId, user_id: currentFirebaseUser.uid, user_email: currentProfile.email, answers });
+                document.getElementById(`msg_${formId}`).innerHTML = "✓ Response submitted! Thank you."; document.getElementById(`msg_${formId}`).classList.remove("hidden");
+            });
+            if (admin) {
+                document.getElementById("createFormBtn")?.addEventListener("click", () => openFormBuilder(() => renderForms()));
+                document.querySelectorAll(".viewResponsesBtn").forEach(btn => btn.onclick = async () => {
+                    const { data: resps } = await supabase.from("form_responses").select("*").eq("form_id", btn.dataset.id);
+                    const form = forms.find(f => f.id == btn.dataset.id);
+                    openResponsesModal(form, resps || []);
+                });
+                document.querySelectorAll(".deleteFormBtn").forEach(btn => btn.onclick = async () => { if (confirm("Delete this form and all responses?")) { await supabase.from("form_responses").delete().eq("form_id", btn.dataset.id); await supabase.from("custom_forms").delete().eq("id", btn.dataset.id); renderForms(); } });
+            }
+        }
+
+        // ================= ADMIN PANEL (unchanged) =================
+        async function renderAdminPanel() {
+            const content = document.getElementById("content");
+            content.innerHTML = `<div class="flex justify-center py-24"><div class="loader"></div></div>`;
+            const [users, clubs, events, yearbook, forms] = await Promise.all([
+                supabase.from("profiles").select("*"), supabase.from("clubs").select("*"), supabase.from("events").select("*"),
+                supabase.from("yearbook_entries").select("*"), supabase.from("custom_forms").select("*")
+            ]);
+            const clubMembers = {};
+            if (clubs.data) for (const club of clubs.data) { const { count } = await supabase.from("club_memberships").select("*", { count: 'exact', head: true }).eq("club_id", club.id); clubMembers[club.id] = count || 0; }
+            const totalUsers = users.data?.length || 0;
+            const activeUsers = users.data?.filter(u => !u.banned).length || 0;
+            const totalClubs = clubs.data?.length || 0;
+            const totalEvents = events.data?.length || 0;
+
+            content.innerHTML = `<div class="max-w-7xl mx-auto"><h2 class="section-title">🛡️ <span>Admin</span> Dashboard</h2><div class="grid grid-cols-2 md:grid-cols-4 gap-5 mb-8"><div class="stat-card"><i class="fas fa-users text-3xl mb-3"></i><p class="text-3xl font-bold">${totalUsers}</p><p class="text-sm opacity-80">Total Users</p></div><div class="stat-card"><i class="fas fa-user-check text-3xl mb-3"></i><p class="text-3xl font-bold">${activeUsers}</p><p class="text-sm opacity-80">Active Users</p></div><div class="stat-card"><i class="fas fa-users text-3xl mb-3"></i><p class="text-3xl font-bold">${totalClubs}</p><p class="text-sm opacity-80">Clubs</p></div><div class="stat-card"><i class="fas fa-calendar-alt text-3xl mb-3"></i><p class="text-3xl font-bold">${totalEvents}</p><p class="text-sm opacity-80">Events</p></div></div><div class="flex flex-wrap gap-3 mb-6"><button class="admin-tab-btn ${currentAdminTab === 'users' ? 'active' : ''}" data-tab="users"><i class="fas fa-users mr-2"></i> Users</button><button class="admin-tab-btn ${currentAdminTab === 'clubs' ? 'active' : ''}" data-tab="clubs"><i class="fas fa-users-cog mr-2"></i> Clubs</button><button class="admin-tab-btn ${currentAdminTab === 'events' ? 'active' : ''}" data-tab="events"><i class="fas fa-calendar-alt mr-2"></i> Events</button><button class="admin-tab-btn ${currentAdminTab === 'yearbook' ? 'active' : ''}" data-tab="yearbook"><i class="fas fa-book-open mr-2"></i> Yearbook</button><button class="admin-tab-btn ${currentAdminTab === 'forms' ? 'active' : ''}" data-tab="forms"><i class="fas fa-file-alt mr-2"></i> Forms</button></div><div id="tab-users" class="admin-card p-5 ${currentAdminTab !== 'users' ? 'hidden' : ''}"><div class="flex justify-between items-center mb-4 flex-wrap gap-2"><h3 class="text-2xl font-bold text-gray-800">User Management</h3><button id="addUserBtn" class="bg-green-600 text-white px-5 py-2 rounded-full text-sm hover:bg-green-700"><i class="fas fa-plus mr-2"></i> Add User</button></div><div class="table-container"><table class="min-w-full"><thead><tr><th>Name</th><th>Email</th><th>Class</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead><tbody>${(users.data || []).map(u => `<tr><td class="font-medium">${esc(u.full_name)}</td><td>${esc(u.email)}</td><td>${esc(u.class || '-')}</td><td><select class="roleSelect border rounded-full px-3 py-1 text-sm" data-id="${u.id}"><option ${u.role === 'admin' ? 'selected' : ''} value="admin">Admin</option><option ${u.role === 'teacher' ? 'selected' : ''} value="teacher">Teacher</option><option ${u.role === 'user' ? 'selected' : ''} value="user">User</option></select></td><td><span class="badge ${u.banned ? 'badge-banned' : 'badge-active'}">${u.banned ? 'Banned' : 'Active'}</span></td><td><button data-id="${u.id}" class="banUserBtn ${u.banned ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'} px-3 py-1 rounded-full text-sm">${u.banned ? 'Unban' : 'Ban'}</button></td></tr>`).join('')}</tbody></table></div></div><div id="tab-clubs" class="admin-card p-5 ${currentAdminTab !== 'clubs' ? 'hidden' : ''}"><div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-gray-800">Clubs & Members</h3><button id="adminAddClubBtn" class="plus-btn"><i class="fas fa-plus-circle"></i> Add Club</button></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4">${(clubs.data || []).map(club => `<div class="border rounded-2xl p-4 flex justify-between items-center hover:shadow-md transition"><div><p class="font-bold text-lg">${esc(club.name)}</p><p class="text-sm text-gray-500">${clubMembers[club.id] || 0} members</p>${club.teacher_name ? `<p class="text-xs text-gray-400">Officer: ${esc(club.teacher_name)}</p>` : ''}</div><div class="flex gap-2"><button data-id="${club.id}" data-name="${esc(club.name)}" class="adminViewMembersBtn bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm"><i class="fas fa-users mr-1"></i>Members</button><button data-id="${club.id}" class="adminDeleteClubBtn bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm"><i class="fas fa-trash"></i></button></div></div>`).join('')}${(!clubs.data || clubs.data.length === 0) ? '<p class="text-gray-500 text-center py-8 col-span-2">No clubs yet.</p>' : ''}</div></div><div id="tab-events" class="admin-card p-5 ${currentAdminTab !== 'events' ? 'hidden' : ''}"><div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-gray-800">Events</h3><button id="adminAddEventBtn" class="plus-btn"><i class="fas fa-plus-circle"></i> Add Event</button></div><div class="space-y-3">${(events.data || []).map(ev => `<div class="border rounded-2xl p-4 flex justify-between items-center"><div><p class="font-bold text-lg">${esc(ev.title)}</p><p class="text-sm text-gray-500">${ev.date ? new Date(ev.date).toLocaleDateString() : 'No date'} ${ev.location ? '· ' + esc(ev.location) : ''}</p></div><button data-id="${ev.id}" class="adminDeleteEventBtn bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm"><i class="fas fa-trash"></i> Delete</button></div>`).join('')}${(!events.data || events.data.length === 0) ? '<p class="text-gray-500 text-center py-8">No events yet.</p>' : ''}</div></div><div id="tab-yearbook" class="admin-card p-5 ${currentAdminTab !== 'yearbook' ? 'hidden' : ''}"><div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-gray-800">Yearbook Photos (Legacy)</h3><p class="text-sm text-gray-500">Use Yearbook tab for modern flipbooks</p></div><div class="grid grid-cols-2 md:grid-cols-4 gap-4">${(yearbook.data || []).map(y => `<div class="border rounded-2xl overflow-hidden relative"><img src="${esc(y.image_url)}" class="h-32 w-full object-cover"><div class="p-2 text-sm">${esc(y.caption || '')}</div><button data-id="${y.id}" class="adminDeleteYbBtn absolute top-2 right-2 bg-black/60 text-white rounded-full w-6 h-6 text-sm">×</button></div>`).join('')}${(!yearbook.data || yearbook.data.length === 0) ? '<p class="text-gray-500 text-center py-8 col-span-4">No legacy yearbook entries.</p>' : ''}</div></div><div id="tab-forms" class="admin-card p-5 ${currentAdminTab !== 'forms' ? 'hidden' : ''}"><div class="flex justify-between items-center mb-4"><h3 class="text-2xl font-bold text-gray-800">Forms</h3><button id="adminCreateFormBtn" class="plus-btn"><i class="fas fa-plus-circle"></i> Create Form</button></div><div class="space-y-3">${(forms.data || []).map(f => `<div class="border rounded-2xl p-4 flex justify-between items-center"><div><p class="font-bold text-lg">${esc(f.title)}</p><p class="text-sm text-gray-500">${(f.questions || []).length} questions</p></div><div class="flex gap-2"><button data-id="${f.id}" class="adminViewFormResponsesBtn bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm"><i class="fas fa-eye"></i> Responses</button><button data-id="${f.id}" class="adminDeleteFormBtn bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm"><i class="fas fa-trash"></i> Delete</button></div></div>`).join('')}${(!forms.data || forms.data.length === 0) ? '<p class="text-gray-500 text-center py-8">No forms yet.</p>' : ''}</div></div></div>`;
+
+            document.querySelectorAll(".admin-tab-btn").forEach(btn => btn.onclick = () => { currentAdminTab = btn.dataset.tab; renderAdminPanel(); });
+            document.querySelectorAll(".roleSelect").forEach(sel => sel.onchange = async () => { await supabase.from("profiles").update({ role: sel.value }).eq("id", sel.dataset.id); renderAdminPanel(); });
+            document.querySelectorAll(".banUserBtn").forEach(btn => btn.onclick = async () => { const ban = btn.innerText === 'Ban'; await supabase.from("profiles").update({ banned: ban }).eq("id", btn.dataset.id); renderAdminPanel(); });
+            document.getElementById("addUserBtn")?.addEventListener("click", () => openAddUserModal(() => renderAdminPanel()));
+            document.getElementById("adminAddClubBtn")?.addEventListener("click", () => openClubModal(() => renderAdminPanel()));
+            document.querySelectorAll(".adminDeleteClubBtn").forEach(btn => btn.onclick = async () => { if (confirm("Delete this club?")) { await supabase.from("clubs").delete().eq("id", btn.dataset.id); renderAdminPanel(); } });
+            document.querySelectorAll(".adminViewMembersBtn").forEach(btn => btn.onclick = async () => { const clubId = btn.dataset.id, clubName = btn.dataset.name; const { data: members } = await supabase.from("club_memberships").select("user_id, created_at").eq("club_id", clubId); if (!members?.length) { alert("No members"); return; } const userIds = members.map(m => m.user_id); const { data: profiles } = await supabase.from("profiles").select("id, full_name, email").in("id", userIds); const profileMap = Object.fromEntries((profiles || []).map(p => [p.id, p])); const rows = members.map(m => `<tr><td class="p-2">${esc(profileMap[m.user_id]?.full_name || "Unknown")}</td><td class="p-2">${esc(profileMap[m.user_id]?.email || "")}</td><td class="p-2">${new Date(m.created_at).toLocaleDateString()}</td></tr>`).join(''); const modal = document.createElement("div"); modal.className = "modal-bg"; modal.innerHTML = `<div class="modal-box rounded-3xl"><h3 class="font-bold text-2xl mb-4">${clubName} - Members (${members.length})</h3><div class="table-container"><table class="w-full"><thead><tr class="bg-gray-100"><th>Name</th><th>Email</th><th>Joined</th></tr></thead><tbody>${rows}</tbody></table></div><button class="mt-5 text-gray-500 closeModal">Close</button></div>`; document.body.appendChild(modal); modal.querySelector(".closeModal").onclick = () => modal.remove(); modal.onclick = (e) => { if (e.target === modal) modal.remove(); }; });
+            document.getElementById("adminAddEventBtn")?.addEventListener("click", () => openEventModal(() => renderAdminPanel()));
+            document.querySelectorAll(".adminDeleteEventBtn").forEach(btn => btn.onclick = async () => { if (confirm("Delete event?")) { await supabase.from("events").delete().eq("id", btn.dataset.id); renderAdminPanel(); } });
+            document.querySelectorAll(".adminDeleteYbBtn").forEach(btn => btn.onclick = async () => { if (confirm("Delete entry?")) { await supabase.from("yearbook_entries").delete().eq("id", btn.dataset.id); renderAdminPanel(); } });
+            document.getElementById("adminCreateFormBtn")?.addEventListener("click", () => openFormBuilder(() => renderAdminPanel()));
+            document.querySelectorAll(".adminDeleteFormBtn").forEach(btn => btn.onclick = async () => { if (confirm("Delete form?")) { await supabase.from("custom_forms").delete().eq("id", btn.dataset.id); renderAdminPanel(); } });
+            document.querySelectorAll(".adminViewFormResponsesBtn").forEach(btn => btn.onclick = async () => { const { data: resps } = await supabase.from("form_responses").select("*").eq("form_id", btn.dataset.id); const form = (forms.data || []).find(f => f.id == btn.dataset.id); if (form) openResponsesModal(form, resps || []); });
+        }
+
+        // ================= MODALS & HELPERS (unchanged) =================
+        function openAddUserModal(onSuccess) {
+            const m = document.createElement("div"); m.className = "modal-bg";
+            m.innerHTML = `<div class="modal-box rounded-3xl"><h3 class="font-bold text-2xl mb-4">Add User</h3><input id="newUserName" placeholder="Full Name" class="w-full border rounded-xl p-3 mb-3"><input id="newUserEmail" placeholder="Email" class="w-full border rounded-xl p-3 mb-3"><input id="newUserClass" placeholder="Class" class="w-full border rounded-xl p-3 mb-3"><select id="newUserRole" class="w-full border rounded-xl p-3 mb-4"><option value="user">User</option><option value="teacher">Teacher</option><option value="admin">Admin</option></select><button id="saveUserBtn" class="btn-gold w-full">Add User</button><button id="cancelUserBtn" class="mt-3 text-gray-500 w-full">Cancel</button><div id="userErr" class="text-red-500 mt-2"></div></div>`;
+            document.body.appendChild(m);
+            document.getElementById("saveUserBtn").onclick = async () => {
+                const name = document.getElementById("newUserName").value.trim(), email = document.getElementById("newUserEmail").value.trim(), cls = document.getElementById("newUserClass").value.trim(), role = document.getElementById("newUserRole").value;
+                if (!name || !email) { document.getElementById("userErr").innerText = "Name and email required"; return; }
+                const { error } = await supabase.from("profiles").insert({ id: crypto.randomUUID(), email, full_name: name, class: cls, role, banned: false });
+                if (error) { document.getElementById("userErr").innerText = error.message; return; }
+                m.remove(); if (onSuccess) onSuccess(); showToast("User added");
+            };
+            document.getElementById("cancelUserBtn").onclick = () => m.remove();
+        }
+
+        function openMultiPageModal(bookId, onSuccess) {
+            const m = document.createElement("div"); m.className = "modal-bg";
+            m.innerHTML = `<div class="modal-box rounded-3xl"><h3 class="font-bold text-2xl mb-3">Add Multiple Pages</h3><p class="text-sm text-gray-600 mb-3">Select multiple images. They will be added in order.</p><input type="file" id="multiImages" accept="image/*" multiple class="w-full border rounded-xl p-2 mb-3"><div id="multiPreview" class="grid grid-cols-3 gap-2 mb-3 max-h-40 overflow-auto"></div><div class="progress-bar"><div id="uploadProgress" class="progress-fill"></div></div><button id="uploadMultiBtn" class="btn-gold w-full">Upload & Add Pages</button><button id="cancelMultiBtn" class="mt-3 text-gray-500 w-full">Cancel</button><div id="multiErr" class="text-red-500 mt-2"></div></div>`;
+            document.body.appendChild(m);
+            const fileInput = m.querySelector("#multiImages");
+            const previewDiv = m.querySelector("#multiPreview");
+            fileInput.addEventListener("change", () => { previewDiv.innerHTML = ''; Array.from(fileInput.files).forEach(file => { const reader = new FileReader(); reader.onload = (e) => { const img = document.createElement('img'); img.src = e.target.result; img.className = 'h-20 w-full object-cover rounded border'; previewDiv.appendChild(img); }; reader.readAsDataURL(file); }); });
+            m.querySelector("#uploadMultiBtn").onclick = async () => {
+                const files = fileInput.files;
+                if (!files.length) { m.querySelector("#multiErr").innerText = "Select at least one image."; return; }
+                const progressBar = m.querySelector("#uploadProgress");
+                let completed = 0, total = files.length;
+                const { data: existingPages } = await supabase.from("yearbook_pages").select("page_number").eq("book_id", bookId).order("page_number", { ascending: false }).limit(1);
+                let nextPageNum = (existingPages && existingPages[0]) ? existingPages[0].page_number + 1 : 1;
+                for (let i = 0; i < files.length; i++) {
+                    try { const imageUrl = await uploadImage(files[i]); await supabase.from("yearbook_pages").insert({ book_id: bookId, page_number: nextPageNum++, image_url: imageUrl }); completed++; progressBar.style.width = `${(completed / total) * 100}%`; } catch (err) { m.querySelector("#multiErr").innerText = `Failed to upload ${files[i].name}: ${err.message}`; return; }
+                }
+                m.remove(); if (onSuccess) onSuccess(); showToast(`Added ${completed} page(s)!`);
+            };
+            m.querySelector("#cancelMultiBtn").onclick = () => m.remove();
+        }
+
+        function openBookModal(onSuccess) {
+            const m = document.createElement("div"); m.className = "modal-bg";
+            m.innerHTML = `<div class="modal-box rounded-3xl"><h3 class="font-bold text-2xl mb-4">Create New Yearbook</h3><input id="bookTitle" placeholder="Title (e.g., Middle School 2025)" class="w-full border rounded-xl p-3 mb-3"><input id="coverTitle" placeholder="Cover Title (optional)" class="w-full border rounded-xl p-3 mb-3"><input id="bookCoverUrl" placeholder="Cover image URL (optional)" class="w-full border rounded-xl p-3 mb-2"><p class="text-sm text-gray-500 mb-1">Or upload cover image:</p><input type="file" id="bookCoverFile" accept="image/*" class="w-full border rounded-xl p-2 mb-4"><button id="saveBook" class="btn-gold w-full">Create</button><button id="cancelBook" class="mt-3 text-gray-500 w-full">Cancel</button><div id="bookErr" class="text-red-500 mt-2"></div></div>`;
+            document.body.appendChild(m);
+            m.querySelector("#saveBook").onclick = async () => {
+                const title = m.querySelector("#bookTitle").value.trim();
+                if (!title) { m.querySelector("#bookErr").innerText = "Title required"; return; }
+                let coverUrl = m.querySelector("#bookCoverUrl").value.trim();
+                const file = m.querySelector("#bookCoverFile").files[0];
+                if (file) { try { coverUrl = await uploadImage(file); } catch (e) { m.querySelector("#bookErr").innerText = "Upload failed: " + e.message; return; } }
+                const coverTitle = m.querySelector("#coverTitle").value.trim();
+                await supabase.from("yearbook_books").insert({ title, cover_title: coverTitle || null, cover_image: coverUrl || null, description: "", is_public: true });
+                m.remove(); if (onSuccess) onSuccess(); showToast("Yearbook created!");
+            };
+            m.querySelector("#cancelBook").onclick = () => m.remove();
+        }
+
+        function openEditCoverModal(book, onSuccess) {
+            const m = document.createElement("div"); m.className = "modal-bg";
+            m.innerHTML = `<div class="modal-box rounded-3xl"><h3 class="font-bold text-2xl mb-4">Edit Yearbook Cover</h3><input id="coverTitle" placeholder="Cover Title" class="w-full border rounded-xl p-3 mb-3" value="${esc(book.cover_title || '')}"><input id="coverImageUrl" placeholder="Cover image URL" class="w-full border rounded-xl p-3 mb-2" value="${esc(book.cover_image || '')}"><p class="text-sm text-gray-500 mb-1">Or upload new cover:</p><input type="file" id="coverImageFile" accept="image/*" class="w-full border rounded-xl p-2 mb-4"><button id="saveCover" class="btn-gold w-full">Save Cover</button><button id="cancelCover" class="mt-3 text-gray-500 w-full">Cancel</button><div id="coverErr" class="text-red-500 mt-2"></div></div>`;
+            document.body.appendChild(m);
+            m.querySelector("#saveCover").onclick = async () => {
+                let coverUrl = m.querySelector("#coverImageUrl").value.trim();
+                const file = m.querySelector("#coverImageFile").files[0];
+                if (file) { try { coverUrl = await uploadImage(file); } catch (e) { m.querySelector("#coverErr").innerText = "Upload failed: " + e.message; return; } }
+                const coverTitle = m.querySelector("#coverTitle").value.trim();
+                await supabase.from("yearbook_books").update({ cover_title: coverTitle || null, cover_image: coverUrl || null }).eq("id", book.id);
+                m.remove(); if (onSuccess) onSuccess(); showToast("Cover updated!");
+            };
+            m.querySelector("#cancelCover").onclick = () => m.remove();
+        }
+
+        function openPageModal(bookId, onSuccess) {
+            const m = document.createElement("div"); m.className = "modal-bg";
+            m.innerHTML = `<div class="modal-box rounded-3xl"><h3 class="font-bold text-2xl mb-4">Add One Page</h3><input type="file" id="pageImageFile" accept="image/*" class="w-full border rounded-xl p-2 mb-3"><div id="imagePreview" class="mb-3 hidden"><img id="previewImg" class="max-h-40 rounded"></div><button id="savePage" class="btn-gold w-full">Add Page</button><button id="cancelPage" class="mt-3 text-gray-500 w-full">Cancel</button><div id="pageErr" class="text-red-500 mt-2"></div></div>`;
+            document.body.appendChild(m);
+            const fileInput = m.querySelector("#pageImageFile");
+            const previewDiv = m.querySelector("#imagePreview");
+            const previewImg = m.querySelector("#previewImg");
+            fileInput.addEventListener("change", (e) => { if (e.target.files && e.target.files[0]) { const reader = new FileReader(); reader.onload = (ev) => { previewImg.src = ev.target.result; previewDiv.classList.remove("hidden"); }; reader.readAsDataURL(e.target.files[0]); } else previewDiv.classList.add("hidden"); });
+            m.querySelector("#savePage").onclick = async () => {
+                const file = fileInput.files[0];
+                if (!file) { m.querySelector("#pageErr").innerText = "Select an image"; return; }
+                let imageUrl;
+                try { imageUrl = await uploadImage(file); } catch (e) { m.querySelector("#pageErr").innerText = "Upload failed"; return; }
+                const { data: pages } = await supabase.from("yearbook_pages").select("page_number").eq("book_id", bookId).order("page_number", { ascending: false }).limit(1);
+                const newPageNum = (pages && pages[0]) ? pages[0].page_number + 1 : 1;
+                await supabase.from("yearbook_pages").insert({ book_id: bookId, page_number: newPageNum, image_url: imageUrl });
+                m.remove(); if (onSuccess) onSuccess(); showToast("Page added!");
+            };
+            m.querySelector("#cancelPage").onclick = () => m.remove();
+        }
+
+        function openClubModal(onSuccess) {
+            const m = document.createElement("div"); m.className = "modal-bg";
+            m.innerHTML = `<div class="modal-box rounded-3xl"><h3 class="font-bold text-2xl mb-4">Create Club</h3><input id="clubName" placeholder="Club Name" class="w-full border rounded-xl p-3 mb-3"><textarea id="clubDesc" placeholder="Description" rows="3" class="w-full border rounded-xl p-3 mb-3"></textarea><input id="clubCoverUrl" placeholder="Cover image URL (optional)" class="w-full border rounded-xl p-3 mb-2"><p class="text-sm text-gray-500 mb-1">Or upload image:</p><input type="file" id="clubCoverFile" accept="image/*" class="w-full border rounded-xl p-2 mb-3"><div id="clubPreview" class="mb-3 hidden"><img class="h-24 rounded"></div><input id="clubTeacher" placeholder="Teacher/Officer Name" class="w-full border rounded-xl p-3 mb-3"><input id="clubTeacherEmail" placeholder="Teacher Email" class="w-full border rounded-xl p-3 mb-4"><button id="saveClubBtn" class="btn-gold w-full">Create Club</button><button id="cancelClubBtn" class="mt-3 text-gray-500 w-full">Cancel</button><div id="clubErr" class="text-red-500 mt-2"></div></div>`;
+            document.body.appendChild(m);
+            const fileInput = m.querySelector("#clubCoverFile");
+            const previewDiv = m.querySelector("#clubPreview");
+            const previewImg = previewDiv.querySelector("img");
+            fileInput.addEventListener("change", (e) => { if (e.target.files && e.target.files[0]) { const reader = new FileReader(); reader.onload = (ev) => { previewImg.src = ev.target.result; previewDiv.classList.remove("hidden"); }; reader.readAsDataURL(e.target.files[0]); } else previewDiv.classList.add("hidden"); });
+            m.querySelector("#saveClubBtn").onclick = async () => {
+                const name = m.querySelector("#clubName").value.trim();
+                if (!name) { m.querySelector("#clubErr").innerText = "Name required"; return; }
+                let coverUrl = m.querySelector("#clubCoverUrl").value.trim();
+                const file = fileInput.files[0];
+                if (file) { try { coverUrl = await uploadImage(file); } catch (e) { m.querySelector("#clubErr").innerText = "Upload failed: " + e.message; return; } }
+                await supabase.from("clubs").insert({ name, description: m.querySelector("#clubDesc").value.trim(), cover_image: coverUrl || null, teacher_name: m.querySelector("#clubTeacher").value.trim(), teacher_email: m.querySelector("#clubTeacherEmail").value.trim() });
+                m.remove(); if (onSuccess) onSuccess(); showToast("Club created!");
+            };
+            m.querySelector("#cancelClubBtn").onclick = () => m.remove();
+        }
+
+        function openEditClubModal(club, onSuccess) {
+            const m = document.createElement("div"); m.className = "modal-bg";
+            m.innerHTML = `<div class="modal-box rounded-3xl"><h3 class="font-bold text-2xl mb-4">Edit Club</h3><input id="editClubName" placeholder="Club Name" class="w-full border rounded-xl p-3 mb-3" value="${esc(club.name)}"><textarea id="editClubDesc" placeholder="Description" rows="3" class="w-full border rounded-xl p-3 mb-3">${esc(club.description || '')}</textarea><input id="editClubCoverUrl" placeholder="Cover image URL" class="w-full border rounded-xl p-3 mb-2" value="${esc(club.cover_image || '')}"><p class="text-sm text-gray-500 mb-1">Or upload new image:</p><input type="file" id="editClubCoverFile" accept="image/*" class="w-full border rounded-xl p-2 mb-3"><input id="editClubTeacher" placeholder="Teacher/Officer Name" class="w-full border rounded-xl p-3 mb-3" value="${esc(club.teacher_name || '')}"><input id="editClubTeacherEmail" placeholder="Teacher Email" class="w-full border rounded-xl p-3 mb-4" value="${esc(club.teacher_email || '')}"><button id="saveClubEdit" class="btn-gold w-full">Save Changes</button><button id="cancelClubEdit" class="mt-3 text-gray-500 w-full">Cancel</button><div id="editErr" class="text-red-500 mt-2"></div></div>`;
+            document.body.appendChild(m);
+            m.querySelector("#editClubCoverFile").addEventListener("change", async (e) => { if (e.target.files[0]) { try { const url = await uploadImage(e.target.files[0]); m.querySelector("#editClubCoverUrl").value = url; showToast("Image uploaded"); } catch (err) { showToast("Upload failed", true); } } });
+            m.querySelector("#saveClubEdit").onclick = async () => {
+                const name = m.querySelector("#editClubName").value.trim();
+                if (!name) { m.querySelector("#editErr").innerText = "Name required"; return; }
+                await supabase.from("clubs").update({ name, description: m.querySelector("#editClubDesc").value.trim(), cover_image: m.querySelector("#editClubCoverUrl").value.trim(), teacher_name: m.querySelector("#editClubTeacher").value.trim(), teacher_email: m.querySelector("#editClubTeacherEmail").value.trim() }).eq("id", club.id);
+                m.remove(); if (onSuccess) onSuccess(); showToast("Club updated!");
+            };
+            m.querySelector("#cancelClubEdit").onclick = () => m.remove();
+        }
+
+        function openFormBuilder(onSuccess) {
+            let questions = [];
+            const m = document.createElement("div"); m.className = "modal-bg";
+            m.innerHTML = `<div class="modal-box rounded-3xl"><h3 class="font-bold text-2xl mb-4">Form Builder</h3><input id="formTitle" placeholder="Form Title" class="w-full border rounded-xl p-3 mb-3"><input id="formDesc" placeholder="Description" class="w-full border rounded-xl p-3 mb-3"><div class="flex gap-2 flex-wrap my-3"><button data-type="text" class="addQBtn bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm">+ Short Answer</button><button data-type="long_text" class="addQBtn bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm">+ Long Answer</button><button data-type="multiple_choice" class="addQBtn bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm">+ Multiple Choice</button><button data-type="checkbox" class="addQBtn bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm">+ Checkboxes</button></div><div id="builderQuestions" class="border p-3 mb-4 max-h-64 overflow-auto rounded-xl bg-gray-50"></div><button id="publishFormBtn" class="btn-gold w-full">Publish Form</button><button id="cancelFormBtn" class="mt-3 text-gray-500 w-full">Cancel</button><div id="buildErr" class="text-red-500 mt-2"></div></div>`;
+            document.body.appendChild(m);
+            function renderBuilder() {
+                const container = document.getElementById("builderQuestions");
+                if (!questions.length) { container.innerHTML = "<p class='text-gray-400'>No questions added yet.</p>"; return; }
+                container.innerHTML = questions.map((q, i) => `<div class="border p-3 mb-3 rounded-xl bg-white"><div class="flex justify-between items-start"><span class="text-xs font-semibold bg-gray-200 px-2 py-1 rounded-full">${q.type}</span><button class="removeQBtn text-red-500 text-sm">Remove</button></div><input class="w-full border rounded-lg p-2 mt-2" value="${esc(q.label)}" placeholder="Question label" data-idx="${i}" data-field="label"><div id="opts_${i}" class="mt-2"></div><label class="flex items-center gap-2 mt-2"><input type="checkbox" data-idx="${i}" data-field="required" ${q.required ? 'checked' : ''}> Required</label></div>`);
+                questions.forEach((q, i) => {
+                    if (q.type === 'multiple_choice' || q.type === 'checkbox') {
+                        const optsDiv = document.getElementById(`opts_${i}`);
+                        optsDiv.innerHTML = `<textarea class="w-full border rounded-lg p-2 text-sm" rows="2" placeholder="Options (one per line)" data-idx="${i}" data-field="options">${(q.options || []).join('\n')}</textarea>`;
+                        document.querySelector(`textarea[data-idx="${i}"][data-field="options"]`).oninput = (e) => questions[i].options = e.target.value.split('\n').map(s => s.trim()).filter(Boolean);
+                    }
+                });
+                document.querySelectorAll("input[data-field='label']").forEach(inp => inp.oninput = (e) => questions[inp.dataset.idx].label = inp.value);
+                document.querySelectorAll("input[data-field='required']").forEach(ch => ch.onchange = (e) => questions[ch.dataset.idx].required = ch.checked);
+                document.querySelectorAll(".removeQBtn").forEach(btn => btn.onclick = () => { questions.splice(btn.parentElement.parentElement.querySelector('input[data-field="label"]').dataset.idx, 1); renderBuilder(); });
+            }
+            document.querySelectorAll(".addQBtn").forEach(btn => btn.onclick = () => { questions.push({ type: btn.dataset.type, label: "", required: false, options: [] }); renderBuilder(); });
+            renderBuilder();
+            document.getElementById("publishFormBtn").onclick = async () => {
+                const title = document.getElementById("formTitle").value.trim();
+                if (!title) { document.getElementById("buildErr").innerText = "Title required"; return; }
+                if (!questions.length) { document.getElementById("buildErr").innerText = "Add at least one question"; return; }
+                await supabase.from("custom_forms").insert({ title, description: document.getElementById("formDesc").value.trim(), questions, is_active: true });
+                m.remove(); if (onSuccess) onSuccess(); showToast("Form published!");
+            };
+            document.getElementById("cancelFormBtn").onclick = () => m.remove();
+        }
+
+        function openResponsesModal(form, responses) {
+            const m = document.createElement("div"); m.className = "modal-bg";
+            m.innerHTML = `<div class="modal-box rounded-3xl"><h3 class="font-bold text-2xl mb-4">${esc(form.title)} – Responses (${responses.length})</h3><div class="max-h-96 overflow-auto">${responses.map(r => `<div class="border-b p-3 mb-2"><div class="text-xs text-gray-500">${r.user_email}</div>${(form.questions || []).map((q, i) => `<div class="mt-1"><b>${esc(q.label)}:</b> ${Array.isArray(r.answers?.[i]) ? r.answers[i].join(', ') : esc(r.answers?.[i] || '—')}</div>`).join('')}</div>`).join('') || '<p class="text-gray-500 py-8 text-center">No responses yet</p>'}</div><button class="mt-4 text-gray-500 closeModalBtn">Close</button></div>`;
+            document.body.appendChild(m);
+            m.querySelector(".closeModalBtn").onclick = () => m.remove();
+        }
+
+        renderApp();
+    </script>
+</body>
+
+</html>
